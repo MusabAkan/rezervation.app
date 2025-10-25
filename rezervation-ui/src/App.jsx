@@ -80,12 +80,28 @@ export default function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      setCurrentPage(window.location.hash || '#explore');
+      const hash = window.location.hash;
+      setCurrentPage(hash.split('?')[0] || '#explore');
       setSidebarOpen(false);
+
+      if (hash.includes('?book=true')) {
+        const businessId = hash.split('/')[1]?.split('?')[0];
+        if (businessId) {
+            setTimeout(() => {
+                const businessToBook = businesses.find(b => b.id === businessId);
+                if (businessToBook) {
+                    setBookingModalBusiness(businessToBook);
+                }
+            }, 100);
+        }
+      }
     }
+    
     window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [businesses]);
 
   const handleMarkAllRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));

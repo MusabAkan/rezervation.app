@@ -5,7 +5,7 @@ import {Input} from "../components/ui/input";
 import {Badge} from "../components/ui//badge";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../components/ui//select";
 import {Avatar, AvatarFallback} from "../components/ui/avatar";
-import {Filter, MapPin} from "lucide-react";
+import {Filter, MapPin, CalendarPlus} from "lucide-react";
 import Stars from '../components/common/Stars';
 import AdBanner from "../components/common/AdBanner";
 import {CATEGORIES} from '../data/mockData';
@@ -54,7 +54,7 @@ function Filters({t, values, setValues}) {
                 <Select value={tmp.price} onValueChange={(v) => setTmp({...tmp, price: v})}><SelectTrigger><SelectValue
                     placeholder={t.price}/></SelectTrigger><SelectContent><SelectItem value="any">{t.price}:
                     Hepsi</SelectItem><SelectItem value="$">$</SelectItem><SelectItem
-                    value="$">$</SelectItem><SelectItem value="$$">$$</SelectItem></SelectContent></Select>
+                    value="$">$</SelectItem><SelectItem value="$">$</SelectItem></SelectContent></Select>
             </div>
             <div className="mt-4 flex gap-2"><Button className="bg-primary hover:bg-primary/90" onClick={apply}><Filter
                 className="h-4 w-4 mr-2"/>{t.apply}</Button><Button variant="outline" onClick={clear}>{t.clear}</Button>
@@ -86,8 +86,9 @@ function BusinessCard({t, b}) {
                         </div>
                     </div>
                     <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{b.description}</p>
-                    <div className="mt-3 flex flex-wrap gap-2 items-center">
-                        <Button size="sm" variant="secondary" className="ml-auto" asChild><a
+                    <div className="mt-3 flex flex-wrap gap-2 items-center justify-end">
+                        <Button size="sm" asChild><a href={`#business/${b.id}?book=true`}><CalendarPlus className="h-4 w-4 mr-2"/>{t.bookNow}</a></Button>
+                        <Button size="sm" variant="secondary" asChild><a
                             href={`#business/${b.id}`}>{t.seeDetails}</a></Button>
                     </div>
                 </div>
@@ -96,7 +97,7 @@ function BusinessCard({t, b}) {
     );
 }
 
-export default function Explore({t, lang, onBook, businesses}) {
+export default function Explore({t, lang, businesses}) {
     const [filters, setFilters] = useState({q: '', maxKm: 20, minRate: 0, price: 'any', cat: 'all', sub: 'all'});
 
     const results = useMemo(() => businesses.filter(b =>
