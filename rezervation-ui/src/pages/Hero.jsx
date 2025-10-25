@@ -1,11 +1,11 @@
 import React from 'react';
-import {Button} from "../ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "../ui/card";
-import {Badge} from "../ui/badge";
+import {Button} from "../components/ui/button.jsx";
+import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card.jsx";
+import {Badge} from "../components/ui/badge.jsx";
 import {Search, Video, ShieldCheck, Earth, ShoppingBag} from "lucide-react";
-import Stars from '../common/Stars';
-import {INITIAL_BUSINESSES_DATA} from '../../data/mockData';
-import {dict} from '../../i18n';
+import Stars from '../components/common/Stars.jsx';
+import {INITIAL_BUSINESSES_DATA} from '../data/mockData.jsx';
+import {dict} from '../i18n.jsx';
 
 export default function Hero({t}) {
     return (

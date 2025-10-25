@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "../ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function ServiceImageViewer({ isOpen, onClose, service }) {
+export default function ServiceImageModal({ isOpen, onClose, service }) {
     if (!service) return null;
 
     // Simulate having multiple images for a service

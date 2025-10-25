@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Edit, PlusCircle, Settings, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/components/@/components/utils/formatters';
-import AddServiceModal from './AddServiceModal';
+import AddServiceModal from '../modals/AddServiceModal.jsx';
 import { CATEGORIES } from '../../data/mockData';
 import { ServiceIcon } from '../common/ServiceIcon';
 import Pagination from '../common/Pagination';

@@ -1,16 +1,15 @@
-import  React, { useState, useEffect, useMemo } from 'react';
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Checkbox } from "../ui/checkbox";
-import { Upload, Trash2 } from "lucide-react";
-import { CATEGORIES } from '../../data/mockData';
-import ServiceIcon from '../common/ServiceIcon';
-import { serviceIcons } from '../common/ServiceIcon';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button } from '../ui/button.jsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '../ui/dialog.jsx';
+import { Input } from '../ui/input.jsx';
+import { Textarea } from '../ui/textarea.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select.jsx';
+import { Checkbox } from '../ui/checkbox.jsx';
+import { Upload, Trash2 } from 'lucide-react';
+import { CATEGORIES } from '../../data/mockData.jsx';
+import { serviceIcons } from '../common/ServiceIcon.jsx';
 
-export default function AddServiceModal({ isOpen, onClose, onSave, service, t, business }) {
+function AddServiceModal({ isOpen, onClose, onSave, service, t, business }) {
     const isEditing = !!service?.id;
     const [formData, setFormData] = useState({});
     const [images, setImages] = useState([]);
@@ -34,7 +33,6 @@ export default function AddServiceModal({ isOpen, onClose, onSave, service, t, b
                 isRemote: service.isRemote || false,
                 subCategory: service.subCategory || '',
             });
-            // Image simulation: if editing, show placeholder images
             setImages(service.id ? ['gorsel1.jpg', 'gorsel2.jpg'] : []);
         } else {
              setFormData(defaultState);
@@ -144,3 +142,5 @@ export default function AddServiceModal({ isOpen, onClose, onSave, service, t, b
         </Dialog>
     );
 }
+
+export default AddServiceModal;

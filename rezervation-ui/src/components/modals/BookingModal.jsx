@@ -6,7 +6,7 @@ import { Textarea } from "../ui/textarea";
 import { ChevronLeft, ChevronRight, ArrowRight, Calendar, Camera, MinusCircle, PlusCircle } from "lucide-react";
 import { ServerEndpoints } from '../../services/api';
 import { formatCurrency } from '../../utils/helpers';
-import ServiceImageViewer from './ServiceImageViewer';
+import ServiceImageModal from './ServiceImageModal.jsx';
 import ServiceIcon from '../common/ServiceIcon';
 
 export default function BookingModal({ t, lang, b, onClose, onBook, servicesData }){ 
@@ -244,7 +244,7 @@ export default function BookingModal({ t, lang, b, onClose, onBook, servicesData
                 </Button>
             )}
         </DialogFooter>
-         {viewingService && <ServiceImageViewer isOpen={!!viewingService} onClose={() => setViewingService(null)} service={viewingService} />}
+         {viewingService && <ServiceImageModal isOpen={!!viewingService} onClose={() => setViewingService(null)} service={viewingService} />}
       </DialogContent>
     </Dialog>
   );

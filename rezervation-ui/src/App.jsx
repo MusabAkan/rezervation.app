@@ -6,7 +6,7 @@ import { INITIAL_APPOINTMENTS, INITIAL_FORUM_POSTS, INITIAL_NOTIFICATIONS, INITI
 import { ServerEndpoints } from './services/api';
 import Header from './components/layout/Header';
 import SidebarNav from './components/layout/SidebarNav';
-import Hero from './components/home/Hero';
+import Hero from './pages/Hero.jsx';
 import Explore from './pages/Explore';
 import Auth from './pages/Auth.jsx';
 import CustomerProfile from './pages/CustomerProfile';

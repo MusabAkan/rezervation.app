@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { ChevronLeft, ChevronRight, ArrowRight, Calendar, Camera, MinusCircle, PlusCircle } from "lucide-react";
 import { ServerEndpoints } from '../services/api';
 import {formatCurrency } from '../utils/helpers';
-import ServiceImageViewer from '../components/modals/ServiceImageViewer';
+import ServiceImageModal from '../components/modals/ServiceImageModal.jsx';
 import ServiceIcon from '../components/common/ServiceIcon';
 
 const Stepper = ({ currentStep }) => {
@@ -267,7 +267,7 @@ export default function ReservationCalendarPage({ t, lang, business, onClose, on
                 </Button>
             )}
         </div>
-         {viewingService && <ServiceImageViewer isOpen={!!viewingService} onClose={() => setViewingService(null)} service={viewingService} />}
+         {viewingService && <ServiceImageModal isOpen={!!viewingService} onClose={() => setViewingService(null)} service={viewingService} />}
     </div>
   );
 }
