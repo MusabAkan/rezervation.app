@@ -238,7 +238,7 @@ export default function App() {
               <DialogDescription>{t.toggleNavigation}</DialogDescription>
             </SheetHeader>
             <div className="flex h-14 items-center border-b border-slate-700 px-4 lg:h-[60px] lg:px-6">
-              <a href="#explore" className="flex items-center gap-2 font-semibold text-white">
+              <a href="#explore" className="flex items-center gap-2 font-semibold">
                 <Sparkles className="h-6 w-6 text-primary" />
                 <span>{t.appName}</span>
               </a>

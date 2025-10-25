@@ -2,7 +2,7 @@ import React from 'react';
 import {Button} from "../ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "../ui/card";
 import {Badge} from "../ui/badge";
-import {Search, Video, ShieldCheck, Earth} from "lucide-react";
+import {Search, Video, ShieldCheck, Earth, ShoppingBag} from "lucide-react";
 import Stars from '../common/Stars';
 import {INITIAL_BUSINESSES_DATA} from '../../data/mockData';
 import {dict} from '../../i18n';
@@ -15,7 +15,7 @@ export default function Hero({t}) {
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-slate-800 dark:text-slate-100">{t.heroTitle}</h1>
                     <p className="mt-4 text-slate-600 md:text-lg dark:text-slate-400">{t.heroSub}</p>
                     <div className="mt-8 flex gap-3">
-                        <a href="#explore"><Button size="lg" className="gap-2 bg-primary hover:bg-primary/90"><Search
+                        <a href="#explore"><Button size="lg" variant="outline" className="gap-2"><Search
                             className="h-4 w-4"/>{t.getStarted}</Button></a>
                         <Button size="lg" variant="outline" className="gap-2"><Video className="h-4 w-4"/> Demo</Button>
                     </div>
@@ -25,6 +25,8 @@ export default function Hero({t}) {
                         </div>
                         <div className="flex items-center gap-2"><Earth className="text-green-500"/> Global Çok Dillilik
                         </div>
+                        <div className="flex items-center gap-2"><ShoppingBag className="text-green-500" /> İşletme ve Müşteri Esnek Ortam                        </div>
+
                     </div>
                 </div>
                 <Card className="shadow-sm hidden md:block bg-white/50 dark:bg-slate-800/50"><CardHeader><CardTitle
