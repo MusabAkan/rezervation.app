@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./components/ui/sheet";
-import { DialogDescription } from "./components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription } from "./components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import { INITIAL_APPOINTMENTS, INITIAL_FORUM_POSTS, INITIAL_NOTIFICATIONS, INITIAL_MESSAGES, MOCK_SERVICES } from './data/mockData';
 import { ServerEndpoints } from './services/api';
@@ -42,6 +42,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(window.location.hash || '#explore');
   const [ratingModalAppointment, setRatingModalAppointment] = useState(null);
   const [bookingModalBusiness, setBookingModalBusiness] = useState(null);
+  const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
@@ -114,6 +115,7 @@ export default function App() {
 
   const handleLogin = (user) => {
     setCurrentUser(user);
+    setAuthModalOpen(false);
     window.location.hash = '#explore';
   };
   const handleLogout = () => setCurrentUser(null);
@@ -121,7 +123,7 @@ export default function App() {
   const handleCreateAppointment = (business, date, time, orderedServices, total, address, notes) => {
     if (!currentUser || currentUser.type !== 'customer') {
       showToast('mustBeCustomer');
-      window.location.hash = '#auth';
+      setAuthModalOpen(true);
       return;
     }
     const newAppointment = { id: `a${Date.now()}`, customerId: currentUser.id, businessId: business.id, customerName: currentUser.name, businessName: business.name, services: orderedServices, totalPrice: total, date, time, status: 'pending', rated: false, address, notes };
@@ -216,9 +218,6 @@ export default function App() {
     if (currentPage.startsWith('#business/')) {
       return business ? <BusinessProfileView t={t} business={business} onBook={() => setBookingModalBusiness(business)} /> : <div>İşletme bulunamadı.</div>;
     }
-    if (currentPage.startsWith('#auth')) {
-      return <AuthView t={t} onLogin={handleLogin} />;
-    }
     if (currentPage.startsWith('#dashboard') && currentUser?.type === 'business') return <BusinessDashboard t={t} currentUser={currentUser} appointments={appointments} onUpdateStatus={handleAppointmentStatus} services={services[currentUser.id] || []} onSaveService={handleSaveService} onArrivalStatus={handleArrivalStatus} business={businessDetails} />;
     if (currentPage.startsWith('#profile') && currentUser?.type === 'customer') return <CustomerProfile t={t} user={currentUser} appointments={appointments} onRate={setRatingModalAppointment} />;
     if (currentPage.startsWith('#messages') && currentUser) return <Messages t={t} currentUser={currentUser} messages={messages} onSendMessage={handleSendMessage} />;
@@ -240,7 +239,7 @@ export default function App() {
         }
       `}</style>
       <div className="flex flex-col min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-        <Header t={t} lang={lang} setLang={setLang} onAuthOpen={() => { window.location.hash = '#auth'; }} currentUser={currentUser} onLogout={handleLogout} onSidebarOpen={() => setSidebarOpen(true)} notifications={notifications} onMarkAllRead={handleMarkAllRead} />
+        <Header t={t} lang={lang} setLang={setLang} onAuthOpen={() => setAuthModalOpen(true)} currentUser={currentUser} onLogout={handleLogout} onSidebarOpen={() => setSidebarOpen(true)} notifications={notifications} onMarkAllRead={handleMarkAllRead} />
         <main className="flex-grow">
           {!currentUser && (currentPage.startsWith('#explore') || currentPage === '#') && <Hero t={t} />}
           <MainContent />
@@ -262,6 +261,12 @@ export default function App() {
             <SidebarNav t={t} currentUser={currentUser} currentPage={currentPage} />
           </SheetContent>
         </Sheet>
+
+        <Dialog open={isAuthModalOpen} onOpenChange={setAuthModalOpen}>
+            <DialogContent className="p-0 sm:max-w-md overflow-hidden">
+                <AuthView t={t} onLogin={handleLogin} />
+            </DialogContent>
+        </Dialog>
 
         {bookingModalBusiness && <BookingModal t={t} lang={lang} b={bookingModalBusiness} onClose={() => setBookingModalBusiness(null)} onBook={handleCreateAppointment} servicesData={services} />}
         <Toast message={toast} onDismiss={() => setToast(null)} />

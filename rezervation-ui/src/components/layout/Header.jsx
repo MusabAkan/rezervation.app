@@ -29,9 +29,8 @@ export default function Header({ t, lang, setLang, onAuthOpen, currentUser, onLo
                 <NotificationBell t={t} notifications={notifications} onMarkAllRead={onMarkAllRead} />
                 <UserNav t={t} user={currentUser} onLogout={onLogout} />
             </>
-        ) : (
-           <Button asChild className="bg-primary hover:bg-primary/90"><a href="#auth"><LogIn className="h-4 w-4 mr-2" /> {t.auth}</a></Button>
-        )}
-    </header>
+                ) : (
+                   <Button onClick={onAuthOpen} className="bg-primary hover:bg-primary/90"><LogIn className="h-4 w-4 mr-2" /> {t.auth}</Button>
+                )}    </header>
   );
 }
