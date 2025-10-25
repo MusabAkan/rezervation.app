@@ -5,7 +5,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { ChevronLeft, ChevronRight, ArrowRight, Calendar, Camera, MinusCircle, PlusCircle } from "lucide-react";
 import { ServerEndpoints } from '../services/api';
-import { formatCurrency } from '../utils/helpers';
+import {formatCurrency } from '../utils/helpers';
 import ServiceImageViewer from '../components/modals/ServiceImageViewer';
 import ServiceIcon from '../components/common/ServiceIcon';
 

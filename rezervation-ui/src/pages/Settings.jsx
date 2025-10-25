@@ -8,7 +8,7 @@ import {Avatar, AvatarFallback} from "../components/ui/avatar";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
 import {CheckCircle} from 'lucide-react';
 
-export default function SettingsView({t, themeColor, setThemeColor}) {
+export default function Settings({t, themeColor, setThemeColor}) {
     const colorOptions = [
         {name: 'Mavi', value: 'blue', hsl: '221 83% 53%', className: 'bg-blue-600'},
         {name: 'Yeşil', value: 'green', hsl: '142 71% 45%', className: 'bg-green-600'},

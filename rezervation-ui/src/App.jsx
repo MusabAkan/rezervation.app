@@ -8,16 +8,16 @@ import Header from './components/layout/Header';
 import SidebarNav from './components/layout/SidebarNav';
 import Hero from './components/home/Hero';
 import Explore from './pages/Explore';
-import AuthView from './pages/AuthView';
+import Auth from './pages/Auth.jsx';
 import CustomerProfile from './pages/CustomerProfile';
 import BusinessDashboard from './pages/BusinessDashboard';
 import Messages from './pages/Messages';
 import Forum from './pages/Forum';
 import Rewards from './pages/Rewards';
-import SettingsView from './pages/SettingsView';
-import NotificationsView from './pages/NotificationsView';
-import BusinessProfileView from './pages/BusinessProfileView';
-import ReservationCalendarPage from './pages/BookingPage';
+import Settings from './pages/Settings.jsx';
+import Notifications from './pages/Notifications.jsx';
+import BusinessProfile from './pages/BusinessProfile.jsx';
+import ReservationCalendarPage from './pages/Booking.jsx';
 import RatingModal from './components/modals/RatingModal';
 import Toast from './components/common/Toast';
 import SupportChatWidget from './components/common/SupportChatWidget';
@@ -211,15 +211,15 @@ export default function App() {
         return business ? <ReservationCalendarPage t={t} lang={lang} business={business} servicesData={services} onBook={handleCreateAppointment} /> : <div>İşletme bulunamadı.</div>;
     }
     if (currentPage.startsWith('#business/')) {
-      return business ? <BusinessProfileView t={t} business={business} /> : <div>İşletme bulunamadı.</div>;
+      return business ? <BusinessProfile t={t} business={business} /> : <div>İşletme bulunamadı.</div>;
     }
     if (currentPage.startsWith('#dashboard') && currentUser?.type === 'business') return <BusinessDashboard t={t} currentUser={currentUser} appointments={appointments} onUpdateStatus={handleAppointmentStatus} services={services[currentUser.id] || []} onSaveService={handleSaveService} onArrivalStatus={handleArrivalStatus} business={businessDetails} />;
     if (currentPage.startsWith('#profile') && currentUser?.type === 'customer') return <CustomerProfile t={t} user={currentUser} appointments={appointments} onRate={setRatingModalAppointment} />;
     if (currentPage.startsWith('#messages') && currentUser) return <Messages t={t} currentUser={currentUser} messages={messages} onSendMessage={handleSendMessage} />;
-    if (currentPage.startsWith('#notifications') && currentUser) return <NotificationsView t={t} notifications={notifications} onMarkAllRead={handleMarkAllRead} />;
+    if (currentPage.startsWith('#notifications') && currentUser) return <Notifications t={t} notifications={notifications} onMarkAllRead={handleMarkAllRead} />;
     if (currentPage.startsWith('#forum')) return <Forum t={t} />;
     if (currentPage.startsWith('#rewards') && currentUser?.type === 'customer') return <Rewards t={t} />;
-    if (currentPage.startsWith('#settings') && currentUser) return <SettingsView t={t} themeColor={themeColor} setThemeColor={setThemeColor} />;
+    if (currentPage.startsWith('#settings') && currentUser) return <Settings t={t} themeColor={themeColor} setThemeColor={setThemeColor} />;
     if (currentUser?.type === 'business') return <BusinessDashboard t={t} currentUser={currentUser} appointments={appointments} onUpdateStatus={handleAppointmentStatus} services={services[currentUser.id] || []} onSaveService={handleSaveService} onArrivalStatus={handleArrivalStatus} business={businessDetails} />;
     return <Explore t={t} lang={lang} businesses={businesses} />;
   };
@@ -261,7 +261,7 @@ export default function App() {
 
           <Dialog open={isAuthModalOpen} onOpenChange={setAuthModalOpen}>
               <DialogContent className="p-0 sm:max-w-md overflow-hidden">
-                  <AuthView t={t} onLogin={handleLogin} />
+                  <Auth t={t} onLogin={handleLogin} />
               </DialogContent>
           </Dialog>
 
