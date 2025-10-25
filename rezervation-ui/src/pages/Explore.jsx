@@ -9,26 +9,37 @@ import { Filter, MapPin, CalendarPlus } from "lucide-react";
 import Stars from '../components/common/Stars';
 import AdBanner from "../components/common/AdBanner";
 import { CATEGORIES } from '../data/mockData';
-import { SingleSelectCombobox } from '../components/ui/SingleSelectCombobox'; // Yeni genel tekli seçim combobox
-import { MultiSelectCombobox } from '../components/ui/MultiSelectCombobox'; // Genel çoklu seçim combobox
+import { SingleSelectCombobox } from '../components/ui/SingleSelectCombobox'; 
+import { MultiSelectCombobox } from '../components/ui/MultiSelectCombobox'; 
+import { RangeSlider } from '../components/ui/RangeSlider'; // RangeSlider import edildi
 
 function Filters({ t, values, setValues }) {
-  const [tmp, setTmp] = useState(() => ({ // useState başlangıç değeri fonksiyon olarak güncellendi
+  const [tmp, setTmp] = useState(() => ({ 
     ...values,
-    sub: Array.isArray(values.sub) ? values.sub : [] // sub'ın her zaman dizi olduğundan emin ol
+    distance: values.distance !== undefined ? values.distance : [0, 50], // Mesafe aralığı olarak güncellendi
+    rating: values.rating !== undefined ? values.rating : [0, 5], // Puan aralığı olarak güncellendi
+    sub: Array.isArray(values.sub) ? values.sub : [] 
   }));
 
   const handleCategoryChange = (value) => {
-    setTmp(prev => ({ ...prev, cat: value, sub: [] })); // Kategori değişince alt kategorileri sıfırla
+    setTmp(prev => ({ ...prev, cat: value, sub: [] })); 
   };
 
   const handleSubcategoriesChange = (newSubs) => {
     setTmp(prev => ({ ...prev, sub: newSubs }));
   };
 
+  const handleDistanceChange = (newRange) => {
+    setTmp(prev => ({ ...prev, distance: newRange }));
+  };
+
+  const handleRatingChange = (newRange) => {
+    setTmp(prev => ({ ...prev, rating: newRange }));
+  };
+
   const apply = () => setValues(tmp);
   const clear = () => {
-    const cleared = { q: '', maxKm: 20, minRate: 0, price: 'any', cat: 'all', sub: [] };
+    const cleared = { q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: 'all', sub: [] }; // Temizleme değerleri güncellendi
     setTmp(cleared);
     setValues(cleared);
   };
@@ -51,7 +62,7 @@ function Filters({ t, values, setValues }) {
         />
 
         <MultiSelectCombobox
-          items={availableSubcategories} // Sadece string dizisi olarak gönderiyoruz
+          items={availableSubcategories} 
           selectedValues={tmp.sub}
           onValuesChange={handleSubcategoriesChange}
           placeholder="Alt Kategoriler"
@@ -60,8 +71,30 @@ function Filters({ t, values, setValues }) {
           t={t}
         />
 
-        <div className="flex items-center gap-2"><Badge variant="outline" className="w-28 justify-between">{t.distance} <span className="font-medium">{tmp.maxKm} km</span></Badge><input type="range" min={1} max={50} value={tmp.maxKm} onChange={(e) => setTmp({ ...tmp, maxKm: Number(e.target.value) })} className="w-full" /></div>
-        <div className="flex items-center gap-2"><Badge variant="outline" className="w-28 justify-between">{t.rating} <span className="font-medium">{tmp.minRate.toFixed(1)}</span></Badge><input type="range" min={0} max={5} step={0.5} value={tmp.minRate} onChange={(e) => setTmp({ ...tmp, minRate: Number(e.target.value) })} className="w-full" /></div>
+        {/* Mesafe Filtresi (RangeSlider) */}
+        <RangeSlider
+          label={t.distance || "Mesafe"}
+          min={0}
+          max={50}
+          value={tmp.distance}
+          onValueChange={handleDistanceChange}
+          step={1}
+          unit=" km"
+          t={t}
+        />
+
+        {/* Puan Filtresi (RangeSlider) */}
+        <RangeSlider
+          label={t.rating || "Puan"}
+          min={0}
+          max={5}
+          value={tmp.rating}
+          onValueChange={handleRatingChange}
+          step={0.5}
+          unit=""
+          t={t}
+        />
+
         <Select value={tmp.price} onValueChange={(v) => setTmp({ ...tmp, price: v })}><SelectTrigger><SelectValue placeholder={t.price} /></SelectTrigger><SelectContent><SelectItem value="any">{t.price}: Hepsi</SelectItem><SelectItem value="$">$</SelectItem><SelectItem value="$$">$$</SelectItem><SelectItem value="$$$">$$$</SelectItem></SelectContent></Select>
       </div>
       <div className="mt-4 flex gap-2"><Button className="bg-primary hover:bg-primary/90" onClick={apply}><Filter className="h-4 w-4 mr-2" />{t.apply}</Button><Button variant="outline" onClick={clear}>{t.clear}</Button></div>
@@ -104,16 +137,21 @@ function BusinessCard({ t, b }) {
 }
 
 export default function Explore({ t, lang, businesses }) {
-  const [filters, setFilters] = useState({ q: '', maxKm: 20, minRate: 0, price: 'any', cat: 'all', sub: [] });
+  const [filters, setFilters] = useState({ q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: 'all', sub: [] }); // Başlangıç filtre değerleri güncellendi
 
-  const results = useMemo(() => businesses.filter(b =>
-    (filters.cat === 'all' || b.category === filters.cat) &&
-    (filters.sub.length === 0 || (b.subs && filters.sub.every(s => b.subs.includes(s)))) &&
-    (filters.price === 'any' || b.priceLevel === filters.price) &&
-    (b.distanceKm <= filters.maxKm) &&
-    (b.rating >= filters.minRate) &&
-    (filters.q === '' || b.name.toLowerCase().includes(filters.q.toLowerCase()))
-  ), [filters, businesses]);
+  const results = useMemo(() => businesses.filter(b => {
+    const [minKm, maxKm] = filters.distance;
+    const [minRate, maxRate] = filters.rating;
+
+    return (
+      (filters.cat === 'all' || b.category === filters.cat) &&
+      (filters.sub.length === 0 || (b.subs && filters.sub.every(s => b.subs.includes(s)))) &&
+      (filters.price === 'any' || b.priceLevel === filters.price) &&
+      (b.distanceKm >= minKm && b.distanceKm <= maxKm) && 
+      (b.rating >= minRate && b.rating <= maxRate) && 
+      (filters.q === '' || b.name.toLowerCase().includes(filters.q.toLowerCase()))
+    );
+  }), [filters, businesses]);
 
   return (
     <div id="explore" className="max-w-7xl mx-auto px-4 py-8">
