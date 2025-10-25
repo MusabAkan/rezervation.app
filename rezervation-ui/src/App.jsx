@@ -17,7 +17,7 @@ import Rewards from './pages/Rewards';
 import SettingsView from './pages/SettingsView';
 import NotificationsView from './pages/NotificationsView';
 import BusinessProfileView from './pages/BusinessProfileView';
-import BookingModal from './components/modals/BookingModal';
+import ReservationCalendarPage from './pages/BookingPage';
 import RatingModal from './components/modals/RatingModal';
 import Toast from './components/common/Toast';
 import SupportChatWidget from './components/common/SupportChatWidget';
@@ -41,7 +41,6 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [currentPage, setCurrentPage] = useState(window.location.hash || '#explore');
   const [ratingModalAppointment, setRatingModalAppointment] = useState(null);
-  const [bookingModalBusiness, setBookingModalBusiness] = useState(null);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
@@ -84,18 +83,6 @@ export default function App() {
       const hash = window.location.hash;
       setCurrentPage(hash.split('?')[0] || '#explore');
       setSidebarOpen(false);
-
-      if (hash.includes('?book=true')) {
-        const businessId = hash.split('/')[1]?.split('?')[0];
-        if (businessId) {
-            setTimeout(() => {
-                const businessToBook = businesses.find(b => b.id === businessId);
-                if (businessToBook) {
-                    setBookingModalBusiness(businessToBook);
-                }
-            }, 100);
-        }
-      }
     }
     
     window.addEventListener('hashchange', handleHashChange);
@@ -215,8 +202,11 @@ export default function App() {
     const business = businesses.find(b => b.id === businessId);
     const businessDetails = businesses.find(b => b.id === currentUser?.id);
 
+    if (currentPage.startsWith('#book/')) {
+        return business ? <ReservationCalendarPage t={t} lang={lang} business={business} servicesData={services} onBook={handleCreateAppointment} /> : <div>İşletme bulunamadı.</div>;
+    }
     if (currentPage.startsWith('#business/')) {
-      return business ? <BusinessProfileView t={t} business={business} onBook={() => setBookingModalBusiness(business)} /> : <div>İşletme bulunamadı.</div>;
+      return business ? <BusinessProfileView t={t} business={business} /> : <div>İşletme bulunamadı.</div>;
     }
     if (currentPage.startsWith('#dashboard') && currentUser?.type === 'business') return <BusinessDashboard t={t} currentUser={currentUser} appointments={appointments} onUpdateStatus={handleAppointmentStatus} services={services[currentUser.id] || []} onSaveService={handleSaveService} onArrivalStatus={handleArrivalStatus} business={businessDetails} />;
     if (currentPage.startsWith('#profile') && currentUser?.type === 'customer') return <CustomerProfile t={t} user={currentUser} appointments={appointments} onRate={setRatingModalAppointment} />;
@@ -268,7 +258,6 @@ export default function App() {
             </DialogContent>
         </Dialog>
 
-        {bookingModalBusiness && <BookingModal t={t} lang={lang} b={bookingModalBusiness} onClose={() => setBookingModalBusiness(null)} onBook={handleCreateAppointment} servicesData={services} />}
         <Toast message={toast} onDismiss={() => setToast(null)} />
         {currentUser && <SupportChatWidget t={t} />}
         <RatingModal t={t} isOpen={!!ratingModalAppointment} onClose={() => setRatingModalAppointment(null)} onSubmit={handleReviewSubmit} appointment={ratingModalAppointment} />

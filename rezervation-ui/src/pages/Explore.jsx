@@ -87,7 +87,7 @@ function BusinessCard({t, b}) {
                     </div>
                     <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{b.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2 items-center justify-end">
-                        <Button size="sm" asChild><a href={`#business/${b.id}?book=true`}><CalendarPlus className="h-4 w-4 mr-2"/>{t.bookNow}</a></Button>
+                        <Button size="sm" asChild><a href={`#book/${b.id}`}><CalendarPlus className="h-4 w-4 mr-2"/>{t.bookNow}</a></Button>
                         <Button size="sm" variant="secondary" asChild><a
                             href={`#business/${b.id}`}>{t.seeDetails}</a></Button>
                     </div>

@@ -67,11 +67,10 @@ export default function BusinessProfileView({ t, business, onBook }) {
                         <div className="flex-1 -mt-2">
                             <div className="flex items-center gap-2 mt-1"><Stars value={business.rating} /> <span className="text-sm text-slate-500 dark:text-slate-400">({business.reviews} {t.reviews})</span></div>
                         </div>
-                        <div className="flex sm:flex-row gap-2 w-full sm:w-auto">
-                            <Button onClick={onBook} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90"><Calendar className="mr-2 h-4 w-4"/> {t.bookNow}</Button>
-                            <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild><a href={`#messages/${business.id}`}><MessageSquare className="mr-2 h-4 w-4" /> {t.sendMessage}</a></Button>
-                        </div>
-                    </div>
+                                                        <div className="flex sm:flex-row gap-2 w-full sm:w-auto">
+                                                            <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90" asChild><a href={`#book/${business.id}`}><Calendar className="mr-2 h-4 w-4"/> {t.bookNow}</a></Button>
+                                                            <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild><a href={`#messages/${business.id}`}><MessageSquare className="mr-2 h-4 w-4" /> {t.sendMessage}</a></Button>
+                                                        </div>                    </div>
                 </CardHeader>
                 <CardContent>
                     <AdBanner t={t} />
