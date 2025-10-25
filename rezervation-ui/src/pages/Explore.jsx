@@ -54,7 +54,7 @@ function Filters({t, values, setValues}) {
                 <Select value={tmp.price} onValueChange={(v) => setTmp({...tmp, price: v})}><SelectTrigger><SelectValue
                     placeholder={t.price}/></SelectTrigger><SelectContent><SelectItem value="any">{t.price}:
                     Hepsi</SelectItem><SelectItem value="$">$</SelectItem><SelectItem
-                    value="$$">$$</SelectItem><SelectItem value="$$$">$$$</SelectItem></SelectContent></Select>
+                    value="$">$</SelectItem><SelectItem value="$$">$$</SelectItem></SelectContent></Select>
             </div>
             <div className="mt-4 flex gap-2"><Button className="bg-primary hover:bg-primary/90" onClick={apply}><Filter
                 className="h-4 w-4 mr-2"/>{t.apply}</Button><Button variant="outline" onClick={clear}>{t.clear}</Button>
@@ -67,10 +67,10 @@ function BusinessCard({t, b}) {
     const category = CATEGORIES.find(c => c.id === b.category);
     return (
         <Card
-            className="bg-white hover:shadow-md transition overflow-hidden dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600">
-            <CardContent className="p-4 grid grid-cols-[64px,1fr] gap-4">
+            className="w-full max-w-sm bg-white hover:shadow-md transition overflow-hidden dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600 h-52 flex flex-col">
+            <CardContent className="p-4 grid grid-cols-[64px,1fr] gap-4 flex-grow items-center">
                 <Avatar
-                    className="h-16 w-16 border"><AvatarFallback>{b.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</AvatarFallback></Avatar>
+                    className="h-16 w-16 border self-start mt-2"><AvatarFallback>{b.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</AvatarFallback></Avatar>
                 <div>
                     <div className="flex items-start justify-between">
                         <div>
@@ -87,7 +87,7 @@ function BusinessCard({t, b}) {
                     </div>
                     <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{b.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2 items-center">
-                        <Button size="sm" className="ml-auto bg-primary hover:bg-primary/90" asChild><a
+                        <Button size="sm" variant="secondary" className="ml-auto" asChild><a
                             href={`#business/${b.id}`}>{t.seeDetails}</a></Button>
                     </div>
                 </div>
@@ -115,7 +115,7 @@ export default function Explore({t, lang, onBook, businesses}) {
                                                                                                                   setValues={setFilters}/>
             </div>
             <AdBanner t={t}/>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{results.map(b => (
+            <div className="flex flex-wrap justify-center gap-4">{results.map(b => (
                 <BusinessCard key={b.id} t={t} b={b}/>))}</div>
         </div>
     );
