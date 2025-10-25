@@ -232,7 +232,7 @@ export default function App() {
         <Footer t={t} />
 
         <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetContent side="left" className="flex flex-col bg-slate-800 text-white border-r-0 p-0 w-72 sm:w-80">
+          <SheetContent side="left" className="flex flex-col bg-background text-foreground border-r p-0 w-72 sm:w-80">
             <SheetHeader className="sr-only">
               <SheetTitle>{t.appName}</SheetTitle>
               <DialogDescription>{t.toggleNavigation}</DialogDescription>
