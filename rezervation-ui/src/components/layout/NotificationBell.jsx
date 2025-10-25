@@ -36,7 +36,7 @@ export default function NotificationBell({t, notifications, onMarkAllRead}) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="relative">
-                    <Bell className="h-5 w-5"/>
+                    <Bell className={`h-5 w-5 ${unreadCount > 0 ? 'animate-bell-ring text-red-500 fill-current' : ''}`}/> {/* fill-current sınıfı eklendi */}
                     {unreadCount > 0 && (
                         <span
                             className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
