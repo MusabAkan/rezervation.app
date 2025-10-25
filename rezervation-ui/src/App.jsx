@@ -22,6 +22,7 @@ import RatingModal from './components/modals/RatingModal';
 import Toast from './components/common/Toast';
 import SupportChatWidget from './components/common/SupportChatWidget';
 import Footer from './components/layout/Footer.jsx';
+import Loader from './components/common/Loader';
 import { dict } from './i18n';
 
 const ThemeContext = React.createContext();
@@ -43,6 +44,7 @@ export default function App() {
   const [ratingModalAppointment, setRatingModalAppointment] = useState(null);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -64,8 +66,10 @@ export default function App() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       const businessesData = await ServerEndpoints.getBusinesses();
       setBusinesses(businessesData);
+      setTimeout(() => setIsLoading(false), 500); // Simulate loading
     };
     fetchData();
   }, []);
@@ -89,7 +93,7 @@ export default function App() {
     handleHashChange();
 
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [businesses]);
+  }, []);
 
   const handleMarkAllRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -116,6 +120,7 @@ export default function App() {
     const newAppointment = { id: `a${Date.now()}`, customerId: currentUser.id, businessId: business.id, customerName: currentUser.name, businessName: business.name, services: orderedServices, totalPrice: total, date, time, status: 'pending', rated: false, address, notes };
     setAppointments(prev => [...prev, newAppointment]);
     showToast('appointmentSuccess');
+    window.location.hash = '#profile';
   };
 
   const handleAppointmentStatus = (appointmentId, newStatus) => {
@@ -221,46 +226,49 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <style>{`
-        :root {
-          --primary-hsl: ${themeColor === 'blue' ? '221 83% 53%' : themeColor === 'green' ? '142 71% 45%' : themeColor === 'purple' ? '262 83% 58%' : '25 95% 53%'};
-          --primary: hsl(var(--primary-hsl));
-          --primary-foreground: hsl(210 40% 98%);
-        }
-      `}</style>
-      <div className="flex flex-col min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-        <Header t={t} lang={lang} setLang={setLang} onAuthOpen={() => setAuthModalOpen(true)} currentUser={currentUser} onLogout={handleLogout} onSidebarOpen={() => setSidebarOpen(true)} notifications={notifications} onMarkAllRead={handleMarkAllRead} />
-        <main className="flex-grow">
-          {!currentUser && (currentPage.startsWith('#explore') || currentPage === '#') && <Hero t={t} />}
-          <MainContent />
-        </main>
-        <Footer t={t} />
+      {isLoading && <Loader />}
+      <div>
+        <style>{`
+          :root {
+            --primary-hsl: ${themeColor === 'blue' ? '221 83% 53%' : themeColor === 'green' ? '142 71% 45%' : themeColor === 'purple' ? '262 83% 58%' : '25 95% 53%'};
+            --primary: hsl(var(--primary-hsl));
+            --primary-foreground: hsl(210 40% 98%);
+          }
+        `}</style>
+        <div className="flex flex-col min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+          <Header t={t} lang={lang} setLang={setLang} onAuthOpen={() => setAuthModalOpen(true)} currentUser={currentUser} onLogout={handleLogout} onSidebarOpen={() => setSidebarOpen(true)} notifications={notifications} onMarkAllRead={handleMarkAllRead} />
+          <main className="flex-grow">
+            {!currentUser && (currentPage.startsWith('#explore') || currentPage === '#') && <Hero t={t} />}
+            <MainContent />
+          </main>
+          <Footer t={t} />
 
-        <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetContent side="left" className="flex flex-col bg-background text-foreground border-r p-0 w-72 sm:w-80">
-            <SheetHeader className="sr-only">
-              <SheetTitle>{t.appName}</SheetTitle>
-              <DialogDescription>{t.toggleNavigation}</DialogDescription>
-            </SheetHeader>
-            <div className="flex h-14 items-center border-b border-slate-700 px-4 lg:h-[60px] lg:px-6">
-              <a href="#explore" className="flex items-center gap-2 font-semibold">
-                <Sparkles className="h-6 w-6 text-primary" />
-                <span>{t.appName}</span>
-              </a>
-            </div>
-            <SidebarNav t={t} currentUser={currentUser} currentPage={currentPage} />
-          </SheetContent>
-        </Sheet>
+          <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetContent side="left" className="flex flex-col bg-background text-foreground border-r p-0 w-72 sm:w-80">
+              <SheetHeader className="sr-only">
+                <SheetTitle>{t.appName}</SheetTitle>
+                <DialogDescription>{t.toggleNavigation}</DialogDescription>
+              </SheetHeader>
+              <div className="flex h-14 items-center border-b border-slate-700 px-4 lg:h-[60px] lg:px-6">
+                <a href="#explore" className="flex items-center gap-2 font-semibold">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                  <span>{t.appName}</span>
+                </a>
+              </div>
+              <SidebarNav t={t} currentUser={currentUser} currentPage={currentPage} />
+            </SheetContent>
+          </Sheet>
 
-        <Dialog open={isAuthModalOpen} onOpenChange={setAuthModalOpen}>
-            <DialogContent className="p-0 sm:max-w-md overflow-hidden">
-                <AuthView t={t} onLogin={handleLogin} />
-            </DialogContent>
-        </Dialog>
+          <Dialog open={isAuthModalOpen} onOpenChange={setAuthModalOpen}>
+              <DialogContent className="p-0 sm:max-w-md overflow-hidden">
+                  <AuthView t={t} onLogin={handleLogin} />
+              </DialogContent>
+          </Dialog>
 
-        <Toast message={toast} onDismiss={() => setToast(null)} />
-        {currentUser && <SupportChatWidget t={t} />}
-        <RatingModal t={t} isOpen={!!ratingModalAppointment} onClose={() => setRatingModalAppointment(null)} onSubmit={handleReviewSubmit} appointment={ratingModalAppointment} />
+          <Toast message={toast} onDismiss={() => setToast(null)} />
+          {currentUser && <SupportChatWidget t={t} />}
+          <RatingModal t={t} isOpen={!!ratingModalAppointment} onClose={() => setRatingModalAppointment(null)} onSubmit={handleReviewSubmit} appointment={ratingModalAppointment} />
+        </div>
       </div>
     </ThemeContext.Provider>
   );
