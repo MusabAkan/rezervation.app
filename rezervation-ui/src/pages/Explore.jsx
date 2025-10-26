@@ -1,32 +1,37 @@
 import React, { useMemo, useState } from 'react';
+import { CustomSelect } from '../components/ui/CustomSelect'; // Yeni CustomSelect bileşeni import edildi
 import { Button } from "../components/ui//button";
 import { Card, CardContent } from "../components/ui//card";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui//badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui//select";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import { Filter, MapPin, CalendarPlus } from "lucide-react";
 import Stars from '../components/common/Stars';
 import AdBanner from "../components/common/AdBanner";
 import { CATEGORIES } from '../data/mockData';
-import { SingleSelectCombobox } from '../components/ui/SingleSelectCombobox'; 
-import { MultiSelectCombobox } from '../components/ui/MultiSelectCombobox'; 
-import { RangeSlider } from '../components/ui/RangeSlider'; // RangeSlider import edildi
+import { RangeSlider } from '../components/ui/RangeSlider';
 
 function Filters({ t, values, setValues }) {
   const [tmp, setTmp] = useState(() => ({ 
     ...values,
-    distance: values.distance !== undefined ? values.distance : [0, 50], // Mesafe aralığı olarak güncellendi
-    rating: values.rating !== undefined ? values.rating : [0, 5], // Puan aralığı olarak güncellendi
-    sub: Array.isArray(values.sub) ? values.sub : [] 
+    distance: values.distance !== undefined ? values.distance : [0, 50],
+    rating: values.rating !== undefined ? values.rating : [0, 5],
+    cat: values.cat || null,
+    sub: values.sub || [],
   }));
 
-  const handleCategoryChange = (value) => {
-    setTmp(prev => ({ ...prev, cat: value, sub: [] })); 
+  const categoryOptions = CATEGORIES.map(c => ({ value: c.id, label: c.name }));
+  const subCategoryOptions = useMemo(() => {
+    const selectedCategory = CATEGORIES.find(c => c.id === tmp.cat?.value);
+    return selectedCategory ? selectedCategory.subs.map(s => ({ value: s, label: s })) : [];
+  }, [tmp.cat]);
+
+  const handleCategoryChange = (selectedOption) => {
+    setTmp(prev => ({ ...prev, cat: selectedOption, sub: [] })); 
   };
 
-  const handleSubcategoriesChange = (newSubs) => {
-    setTmp(prev => ({ ...prev, sub: newSubs }));
+  const handleSubcategoriesChange = (selectedOptions) => {
+    setTmp(prev => ({ ...prev, sub: selectedOptions || [] }));
   };
 
   const handleDistanceChange = (newRange) => {
@@ -39,39 +44,35 @@ function Filters({ t, values, setValues }) {
 
   const apply = () => setValues(tmp);
   const clear = () => {
-    const cleared = { q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: 'all', sub: [] }; // Temizleme değerleri güncellendi
+    const cleared = { q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: null, sub: [] };
     setTmp(cleared);
     setValues(cleared);
   };
-
-  const selectedCategory = CATEGORIES.find(c => c.id === tmp.cat);
-  const availableSubcategories = selectedCategory ? selectedCategory.subs : [];
 
   return (
     <div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Input value={tmp.q} onChange={e => setTmp({ ...tmp, q: e.target.value })} placeholder={`${t.search}...`} />
         
-        <SingleSelectCombobox
-          items={CATEGORIES}
-          selectedValue={tmp.cat}
-          onValueChange={handleCategoryChange}
+        <CustomSelect
+          options={[{ value: 'all', label: t.categories }, ...categoryOptions]}
+          value={tmp.cat}
+          onChange={handleCategoryChange}
           placeholder={t.categories}
-          searchPlaceholder={t.searchCategories}
-          t={t}
+          isSearchable
         />
 
-        <MultiSelectCombobox
-          items={availableSubcategories} 
-          selectedValues={tmp.sub}
-          onValuesChange={handleSubcategoriesChange}
+        <CustomSelect
+          isMulti
+          options={subCategoryOptions}
+          value={tmp.sub}
+          onChange={handleSubcategoriesChange}
           placeholder="Alt Kategoriler"
-          searchPlaceholder="Alt Kategorileri Ara..."
-          disabled={tmp.cat === 'all'}
-          t={t}
+          isDisabled={!tmp.cat || tmp.cat.value === 'all'}
+          isSearchable
+          closeMenuOnSelect={false}
         />
 
-        {/* Mesafe Filtresi (RangeSlider) */}
         <RangeSlider
           label={t.distance || "Mesafe"}
           min={0}
@@ -83,7 +84,6 @@ function Filters({ t, values, setValues }) {
           t={t}
         />
 
-        {/* Puan Filtresi (RangeSlider) */}
         <RangeSlider
           label={t.rating || "Puan"}
           min={0}
@@ -95,7 +95,17 @@ function Filters({ t, values, setValues }) {
           t={t}
         />
 
-        <Select value={tmp.price} onValueChange={(v) => setTmp({ ...tmp, price: v })}><SelectTrigger><SelectValue placeholder={t.price} /></SelectTrigger><SelectContent><SelectItem value="any">{t.price}: Hepsi</SelectItem><SelectItem value="$">$</SelectItem><SelectItem value="$$">$$</SelectItem><SelectItem value="$$$">$$$</SelectItem></SelectContent></Select>
+        <CustomSelect
+          options={[
+            { value: 'any', label: `${t.price}: Hepsi` },
+            { value: '$', label: '$' },
+            { value: '$$', label: '$$' },
+            { value: '$$$', label: '$$$' },
+          ]}
+          value={tmp.price ? { value: tmp.price, label: tmp.price === 'any' ? `${t.price}: Hepsi` : tmp.price } : null}
+          onChange={option => setTmp({ ...tmp, price: option.value })}
+          placeholder={t.price}
+        />
       </div>
       <div className="mt-4 flex gap-2"><Button className="bg-primary hover:bg-primary/90" onClick={apply}><Filter className="h-4 w-4 mr-2" />{t.apply}</Button><Button variant="outline" onClick={clear}>{t.clear}</Button></div>
     </div>
@@ -137,15 +147,15 @@ function BusinessCard({ t, b }) {
 }
 
 export default function Explore({ t, lang, businesses }) {
-  const [filters, setFilters] = useState({ q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: 'all', sub: [] }); // Başlangıç filtre değerleri güncellendi
+  const [filters, setFilters] = useState({ q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: null, sub: [] });
 
   const results = useMemo(() => businesses.filter(b => {
     const [minKm, maxKm] = filters.distance;
     const [minRate, maxRate] = filters.rating;
 
     return (
-      (filters.cat === 'all' || b.category === filters.cat) &&
-      (filters.sub.length === 0 || (b.subs && filters.sub.every(s => b.subs.includes(s)))) &&
+      (!filters.cat || filters.cat.value === 'all' || b.category === filters.cat.value) &&
+      (filters.sub.length === 0 || (b.subs && filters.sub.every(s => b.subs.includes(s.value)))) &&
       (filters.price === 'any' || b.priceLevel === filters.price) &&
       (b.distanceKm >= minKm && b.distanceKm <= maxKm) && 
       (b.rating >= minRate && b.rating <= maxRate) && 

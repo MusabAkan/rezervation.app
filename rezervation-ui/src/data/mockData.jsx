@@ -32,7 +32,8 @@ export const INITIAL_BUSINESSES_DATA = [
         photos: 12,
         reviews: 128,
         description: 'Motor, elektrik arızaları ve periyodik bakımda uzman ekip.',
-        slots: ['09:30', '10:00', '11:30', '14:00', '16:30']
+        slots: ['09:30', '10:00', '11:30', '14:00', '16:30'],
+        photo: 'https://i.pravatar.cc/150?u=b1'
     },
     {
         id: 'b2',
@@ -48,7 +49,8 @@ export const INITIAL_BUSINESSES_DATA = [
         photos: 34,
         reviews: 342,
         description: 'Hızlı randevu, modern kesimler, steril ortam.',
-        slots: ['09:00', '09:30', '13:00', '15:00']
+        slots: ['09:00', '09:30', '13:00', '15:00'],
+        photo: 'https://i.pravatar.cc/150?u=b2'
     },
     {
         id: 'b3',
@@ -64,7 +66,8 @@ export const INITIAL_BUSINESSES_DATA = [
         photos: 18,
         reviews: 512,
         description: 'Güler yüzlü ekip, gelişmiş görüntüleme ve tedavi.',
-        slots: ['10:00', '11:00', '14:30', '17:30']
+        slots: ['10:00', '11:00', '14:30', '17:30'],
+        photo: 'https://i.pravatar.cc/150?u=b3'
     },
     {
         id: 'b4',
@@ -80,7 +83,8 @@ export const INITIAL_BUSINESSES_DATA = [
         photos: 55,
         reviews: 98,
         description: 'Modern ve fonksiyonel yaşam alanları tasarlıyoruz.',
-        slots: ['10:00', '14:00']
+        slots: ['10:00', '14:00'],
+        photo: 'https://i.pravatar.cc/150?u=b4'
     },
 ];
 
@@ -96,7 +100,11 @@ export const MOCK_SERVICES = {
             currency: '₺',
             active: true,
             isRemote: false,
-            subCategory: 'Motor Ustası'
+            subCategory: 'Motor Ustası',
+            images: [
+                { src: 'https://placehold.co/600x400/e2e8f0/64748b?text=Yag+Degisimi', alt: 'Yağ Değişimi', title: 'Sentetik Yağ Kullanımı' },
+                { src: 'https://placehold.co/600x400/e2e8f0/64748b?text=Filtre+Kontrolu', alt: 'Filtre Kontrolü', title: 'Hava Filtresi Değişimi' }
+            ]
         },
         {
             id: 's5',
@@ -108,7 +116,10 @@ export const MOCK_SERVICES = {
             currency: '₺',
             active: true,
             isRemote: false,
-            subCategory: 'Fren & Balata'
+            subCategory: 'Fren & Balata',
+            images: [
+                { src: 'https://placehold.co/600x400/e2e8f0/64748b?text=Fren+Diskleri', alt: 'Fren Diskleri', title: 'Ön Fren Diski' },
+            ]
         },
         {
             id: 's6',
@@ -184,7 +195,11 @@ export const MOCK_SERVICES = {
             active: true,
             oldPrice: 350,
             isRemote: false,
-            subCategory: 'Saç'
+            subCategory: 'Saç',
+            images: [
+                { src: 'https://placehold.co/600x400/e2e8f0/64748b?text=Modern+Sac+Kesimi', alt: 'Modern Saç Kesimi', title: '2024 Trendleri' },
+                { src: 'https://placehold.co/600x400/e2e8f0/64748b?text=Klasik+Sac+Kesimi', alt: 'Klasik Saç Kesimi', title: 'Her Zaman Şık' }
+            ]
         },
         {
             id: 's2',
@@ -238,7 +253,6 @@ export const MOCK_SERVICES = {
     ],
     b4: [],
 };
-
 
 export const MOCK_USERS = {
     customer: {

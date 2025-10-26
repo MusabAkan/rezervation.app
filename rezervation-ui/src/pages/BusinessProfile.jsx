@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {Button} from "../components/ui/button";
 import {Card, CardContent, CardHeader} from "../components/ui/card";
-import {Avatar, AvatarFallback} from "../components/ui/avatar";
+import {Avatar, AvatarFallback, AvatarImage} from "../components/ui/avatar";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
 import {Input} from "../components/ui/input";
 import {MapPin, Calendar, MessageSquare, ChevronLeft, ChevronRight, ThumbsUp, MessageCircleMore} from "lucide-react";
@@ -14,7 +14,7 @@ import ServiceIcon from '../components/common/ServiceIcon';
 function Review({name, rating, text}) {
     return (
         <div className="flex items-start gap-3">
-            <Avatar><AvatarFallback>{name[0]}</AvatarFallback></Avatar>
+            <Avatar><AvatarFallback>{name[0]}</AvatarFallback></Avatar> 
             <div>
                 <div className="flex items-center gap-2 text-sm font-medium">{name} <Stars value={rating}/></div>
                 <p className="text-sm text-slate-600">{text}</p>
@@ -28,6 +28,7 @@ export default function BusinessProfile({t, business, onBook}) {
     const relatedPosts = INITIAL_FORUM_POSTS.filter(p => p.businessId === business.id);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [serviceSearchQuery, setServiceSearchQuery] = useState('');
+    const [viewingServiceImages, setViewingServiceImages] = useState(null); // Hangi servisin resimlerinin görüntülendiğini tutar
 
     const mockImages = useMemo(() => Array.from({length: 5}, (_, i) => `https://placehold.co/800x400/e2e8f0/64748b?text=${business.name.replace(/\s/g, '+')}+${i + 1}`), [business.name]);
 
@@ -69,7 +70,11 @@ export default function BusinessProfile({t, business, onBook}) {
                 <CardHeader className="pt-6">
                     <div className="flex flex-col sm:flex-row items-start gap-4">
                         <Avatar className="h-24 w-24 border-4 border-white dark:border-slate-800 -mt-16 z-10">
-                            <AvatarFallback>{business.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</AvatarFallback>
+                            {business.photo ? (
+                                <AvatarImage src={business.photo} alt={business.name} />
+                            ) : (
+                                <AvatarFallback>{business.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</AvatarFallback>
+                            )}
                         </Avatar>
                         <div className="flex-1 -mt-2">
                             <div className="flex items-center gap-2 mt-1"><Stars value={business.rating}/> <span
@@ -109,8 +114,11 @@ export default function BusinessProfile({t, business, onBook}) {
                                     <div key={service.id || service.name}
                                          className="flex gap-4 items-center p-3 rounded-lg border dark:border-slate-700">
                                         <img
-                                            src={`https://placehold.co/80x80/e2e8f0/64748b?text=${service.name.slice(0, 1)}`}
-                                            alt={service.name} className="w-16 h-16 rounded-md object-cover"/>
+                                            src={(service.images && service.images[0]?.src) || `https://placehold.co/80x80/e2e8f0/64748b?text=${service.name.slice(0, 1)}`}
+                                            alt={service.name}
+                                            className="w-16 h-16 rounded-md object-cover cursor-pointer" // cursor-pointer eklendi
+                                            onClick={() => service.images && service.images.length > 0 && setViewingServiceImages(service.images)} // Tıklama olayı eklendi
+                                        />
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
                                                 <ServiceIcon name={service.icon}/>
@@ -159,6 +167,14 @@ export default function BusinessProfile({t, business, onBook}) {
                     </Tabs>
                 </CardContent>
             </Card>
+
+            {/* Service Image Viewer Modal */}
+            {viewingServiceImages && (
+                <ServiceImageModal
+                    images={viewingServiceImages}
+                    onClose={() => setViewingServiceImages(null)}
+                />
+            )}
         </div>
     );
 }
