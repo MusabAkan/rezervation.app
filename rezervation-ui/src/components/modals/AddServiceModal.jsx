@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../ui/checkbox.jsx';
 import { Upload, Trash2 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData.jsx';
-import { serviceIcons } from '../common/ServiceIcon.jsx';
+import ServiceIcon, { serviceIcons } from '../common/ServiceIcon.jsx'; // ServiceIcon bileşeni de eklendi
 
 function AddServiceModal({ isOpen, onClose, onSave, service, t, business }) {
     const isEditing = !!service?.id;
