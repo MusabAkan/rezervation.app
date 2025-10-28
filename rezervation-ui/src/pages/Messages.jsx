@@ -1,23 +1,13 @@
-import React, {useState, useEffect, useMemo} from 'react';
-import {Button} from "../components/ui/button";
-import {Card, CardHeader, CardTitle} from "../components/ui/card";
-import {Input} from "../components/ui/input";
-import {Send} from "lucide-react";
-import {MOCK_USERS, INITIAL_BUSINESSES_DATA} from '../data/mockData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Box, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, TextField, Button, Paper } from '@mui/material';
+import { Send } from '@mui/icons-material';
+import { useAppContext } from '../App';
+import { MOCK_USERS, INITIAL_BUSINESSES_DATA } from '../data/mockData';
 
-export default function Messages({t, currentUser, messages, onSendMessage}) {
+export default function Messages() {
+    const { t, currentUser, messages, onSendMessage } = useAppContext();
     const [activeConversationId, setActiveConversationId] = useState(null);
     const [newMessage, setNewMessage] = useState('');
-
-    useEffect(() => {
-        const hash = window.location.hash;
-        const potentialId = hash.split('/')[1];
-        if (potentialId && currentUser) {
-            const partnerId = potentialId;
-            const convId = [currentUser.id, partnerId].sort().join('-');
-            setActiveConversationId(convId);
-        }
-    }, [currentUser]);
 
     const conversationPartners = useMemo(() => {
         if (!currentUser) return {};
@@ -41,65 +31,46 @@ export default function Messages({t, currentUser, messages, onSendMessage}) {
 
     const activeConversation = messages[activeConversationId] || [];
 
-    if (!currentUser) {
-        return <div className="text-center py-10">Mesajları görmek için giriş yapmalısınız.</div>;
-    }
+    if (!currentUser) return <Typography sx={{ p: 4, textAlign: 'center' }}>{t.mustBeLoggedInToViewMessages}</Typography>;
 
     return (
-        <div id="messages" className="max-w-7xl mx-auto px-4 py-8">
-            <Card className="h-[70vh] flex bg-white dark:bg-slate-800 dark:border-slate-700">
-                <div className="w-1/3 border-r bg-slate-50/50 dark:bg-slate-800/50 dark:border-slate-700">
-                    <CardHeader><CardTitle
-                        className="text-base font-semibold">{t.conversations}</CardTitle></CardHeader>
-                    <div className="p-2 space-y-1">
-                        {Object.keys(conversationPartners).map(partnerId => {
-                            const partner = conversationPartners[partnerId];
-                            const convId = [currentUser.id, partnerId].sort().join('-');
-                            const lastMessage = messages[convId]?.[messages[convId].length - 1];
-                            return (
-                                <div key={partnerId} onClick={() => setActiveConversationId(convId)}
-                                     className={`p-3 rounded-md cursor-pointer ${activeConversationId === convId ? 'bg-blue-100 dark:bg-blue-900/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
-                                    <div
-                                        className="font-semibold text-slate-800 dark:text-slate-200">{partner.name}</div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{lastMessage?.text || 'Sohbeti başlat...'}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div className="w-2/3 flex flex-col">
-                    {activeConversationId ? (
-                        <>
-                            <div className="p-4 border-b flex-shrink-0 dark:border-slate-700">
-                                <div
-                                    className="font-semibold text-slate-800 dark:text-slate-200">{conversationPartners[activeConversationId.replace(currentUser.id, '').replace('-', '')]?.name}</div>
-                            </div>
-                            <div className="flex-grow p-4 space-y-4 overflow-y-auto">
-                                {activeConversation.map((msg, index) => (
-                                    <div key={index}
-                                         className={`flex ${msg.from === currentUser.id ? 'justify-end' : 'justify-start'}`}>
-                                        <div
-                                            className={`max-w-xs md:max-w-md p-3 rounded-2xl ${msg.from === currentUser.id ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-slate-100 text-slate-800 rounded-bl-none dark:bg-slate-700 dark:text-slate-200'}`}>
-                                            {msg.text}
-                                        </div>
-                                        _BOS_ </div>
-                                ))}
-                            </div>
-                            <div
-                                className="p-4 border-t flex-shrink-0 bg-white dark:bg-slate-800 dark:border-slate-700">
-                                <div className="flex items-center gap-2">
-                                    <Input placeholder={t.yourMessage}/>
-                                    <Button onClick={handleSend} className="bg-primary hover:bg-primary/90"><Send
-                                        className="h-4 w-4"/></Button>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div
-                            className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">{t.selectConversation}</div>
-                    )}
-                </div>
-            </Card>
-        </div>
+        <Paper sx={{ display: 'flex', height: '75vh' }}>
+            <Box sx={{ width: '30%', borderRight: 1, borderColor: 'divider' }}>
+                <List>
+                    {Object.values(conversationPartners).map(partner => {
+                        const convId = [currentUser.id, partner.id].sort().join('-');
+                        return (
+                            <ListItem button key={partner.id} onClick={() => setActiveConversationId(convId)} selected={activeConversationId === convId}>
+                                <ListItemAvatar><Avatar src={partner.photo}>{partner.name[0]}</Avatar></ListItemAvatar>
+                                <ListItemText primary={partner.name} />
+                            </ListItem>
+                        );
+                    })}
+                </List>
+            </Box>
+            <Box sx={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
+                {activeConversationId ? (
+                    <>
+                        <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
+                            {activeConversation.map((msg, index) => (
+                                <Box key={index} sx={{ display: 'flex', justifyContent: msg.from === currentUser.id ? 'flex-end' : 'flex-start', mb: 1 }}>
+                                    <Paper sx={{ p: 1, bgcolor: msg.from === currentUser.id ? 'primary.main' : 'grey.200', color: msg.from === currentUser.id ? 'primary.contrastText' : 'text.primary' }}>
+                                        {msg.text}
+                                    </Paper>
+                                </Box>
+                            ))}
+                        </Box>
+                        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <TextField value={newMessage} onChange={e => setNewMessage(e.target.value)} fullWidth placeholder={t.yourMessage} />
+                                <Button variant="contained" onClick={handleSend} endIcon={<Send />}>{t.sendMessage}</Button>
+                            </Box>
+                        </Box>
+                    </>
+                ) : (
+                    <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Typography color="text.secondary">{t.selectConversation}</Typography></Box>
+                )}
+            </Box>
+        </Paper>
     );
 }

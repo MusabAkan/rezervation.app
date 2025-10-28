@@ -1,40 +1,36 @@
 import React from 'react';
-import {Home, MessageSquare, Bell, MessageCircleMore, Gift, LayoutDashboard, UserCircle, Settings} from 'lucide-react';
+import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { Home, Message, Notifications, CardGiftcard, Dashboard, Person, Settings } from '@mui/icons-material';
+import { useAppContext } from '../../App';
 
-export default function SidebarNav({t, currentUser, currentPage}) {
+export default function SidebarNav() {
+    const { t, currentUser, currentPage } = useAppContext();
+
     const items = [
-        {label: t.home, href: "#explore", auth: 'any', icon: <Home className="h-5 w-5"/>},
-        {label: t.messages, href: "#messages", auth: 'logged_in', icon: <MessageSquare className="h-5 w-5"/>},
-        {label: t.notifications, href: "#notifications", auth: 'logged_in', icon: <Bell className="h-5 w-5"/>},
-        {label: t.forum, href: "#forum", auth: 'any', icon: <MessageCircleMore className="h-5 w-5"/>},
-        {label: t.rewards, href: "#rewards", auth: 'customer', icon: <Gift className="h-5 w-5"/>},
-        {label: t.dashboard, href: "#dashboard", auth: 'business', icon: <LayoutDashboard className="h-5 w-5"/>},
-        {label: t.profile, href: "#profile", auth: 'customer', icon: <UserCircle className="h-5 w-5"/>},
-        {label: t.settings, href: "#settings", auth: 'logged_in', icon: <Settings className="h-5 w-5"/>}
+        { href: '#explore', icon: <Home />, label: t.home },
+        { href: '#messages', icon: <Message />, label: t.messages, user: true },
+        { href: '#notifications', icon: <Notifications />, label: t.notifications, user: true },
+        { href: '#rewards', icon: <CardGiftcard />, label: t.rewards, user: 'customer' },
+        { href: '#dashboard', icon: <Dashboard />, label: t.dashboard, user: 'business' },
+        { href: '#profile', icon: <Person />, label: t.profile, user: 'customer' },
+        { href: '#settings', icon: <Settings />, label: t.settings, user: true },
     ];
-    const visibleItems = items.filter(item => {
-        if (item.auth === 'any') return true;
-        if (currentUser && item.auth === 'logged_in') return true;
-        if (currentUser && item.auth === currentUser.type) return true;
-        return false;
-    });
-
-    const NavLink = ({href, children, isActive}) => (
-        <a href={href}
-           className={`flex items-center gap-4 rounded-md px-3 py-2 text-slate-300 transition-all hover:text-white relative ${isActive ? "bg-slate-700 text-white" : "hover:bg-slate-700/50"}`}>
-            {isActive && <div className="absolute left-0 top-2 bottom-2 w-1 bg-primary rounded-r-full"></div>}
-            {children}
-        </a>
-    );
 
     return (
-        <nav className="flex flex-col gap-1 p-2 text-base font-medium lg:p-4">
-            {visibleItems.map((i) => (
-                <NavLink key={i.label} href={i.href} isActive={currentPage.startsWith(i.href)}>
-                    {i.icon}
-                    {i.label}
-                </NavLink>
-            ))}
-        </nav>
+        <List>
+            {items.map((item) => {
+                if (item.user && (!currentUser || (item.user !== true && currentUser.type !== item.user))) {
+                    return null;
+                }
+                return (
+                    <ListItem key={item.href} disablePadding>
+                        <ListItemButton component="a" href={item.href} selected={currentPage.startsWith(item.href)}>
+                            <ListItemIcon>{item.icon}</ListItemIcon>
+                            <ListItemText primary={item.label} />
+                        </ListItemButton>
+                    </ListItem>
+                );
+            })}
+        </List>
     );
 }

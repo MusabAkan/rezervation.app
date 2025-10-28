@@ -1,273 +1,186 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { ChevronLeft, ChevronRight, ArrowRight, Calendar, Camera, MinusCircle, PlusCircle } from "lucide-react";
+import { Box, Stepper, Step, StepLabel, Button, Typography, Grid, Card, CardContent, List, ListItem, ListItemText, IconButton, TextField, Paper, ToggleButtonGroup, ToggleButton, Badge, Tooltip } from '@mui/material';
+import { AddCircle, RemoveCircle } from '@mui/icons-material';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider, StaticDatePicker, PickersDay } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
+import 'dayjs/locale/tr';
+import { useAppContext } from '../App';
+import { formatCurrency } from '../utils/helpers';
 import { ServerEndpoints } from '../services/api';
-import {formatCurrency } from '../utils/helpers';
-import ServiceImageModal from '../components/modals/ServiceImageModal.jsx';
-import ServiceIcon from '../components/common/ServiceIcon';
 
-const Stepper = ({ currentStep }) => {
-    const steps = ['Tarih & Saat', 'Hizmetler & Ödeme'];
-    return (
-        <div className="flex items-center justify-center mb-8">
-            {steps.map((step, index) => (
-                <React.Fragment key={index}>
-                    <div className="flex flex-col items-center">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold ${index + 1 <= currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                            {index + 1}
-                        </div>
-                        <p className={`mt-2 text-sm font-medium ${index + 1 <= currentStep ? 'text-primary' : 'text-muted-foreground'}`}>{step}</p>
-                    </div>
-                    {index < steps.length - 1 && <div className={`flex-1 h-1 mx-4 ${index + 1 < currentStep ? 'bg-primary' : 'bg-muted'}`}></div>}
-                </React.Fragment>
-            ))}
-        </div>
-    );
-};
+export default function ReservationCalendarPage({ business }) {
+    const { t, services: servicesData, handleCreateAppointment } = useAppContext();
+    
+    const [activeStep, setActiveStep] = useState(0);
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [availableTimes, setAvailableTimes] = useState([]);
+    const [selectedTime, setSelectedTime] = useState('');
+    const [order, setOrder] = useState({});
+    const [address, setAddress] = useState('');
+    const [notes, setNotes] = useState('');
+    const [availability, setAvailability] = useState({});
 
-export default function ReservationCalendarPage({ t, lang, business, onClose, onBook, servicesData }){
-  const b = business;
-
-  const [step, setStep] = useState(1);
-  const [currentDate, setCurrentDate] = useState(new Date('2025-10-11'));
-  const [availability, setAvailability] = useState({});
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [availableTimes, setAvailableTimes] = useState([]);
-  const [selectedTime, setSelectedTime] = useState('');
-  const [order, setOrder] = useState({});
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewingService, setViewingService] = useState(null);
-  const [address, setAddress] = useState('');
-  const [notes, setNotes] = useState('');
-
-  const services = useMemo(() => servicesData[b.id] || [], [servicesData, b.id]);
-
-  const filteredServices = useMemo(() => {
-    return services.filter(s => s.active && s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [services, searchQuery]);
-
-  const total = useMemo(() => {
-    return Object.keys(order).reduce((acc, serviceId) => {
+    const services = useMemo(() => (servicesData && business && servicesData[business.id]) || [], [servicesData, business]);
+    
+    const total = useMemo(() => Object.keys(order).reduce((acc, serviceId) => {
         const service = services.find(s => s.id === serviceId);
-        const quantity = order[serviceId];
-        if (service && quantity > 0) {
-            return acc + service.price * quantity;
-        }
-        return acc;
-    }, 0);
-  }, [order, services]);
+        return acc + (service.price * (order[serviceId] || 0));
+    }, 0), [order, services]);
 
-  const isRemoteServiceSelected = useMemo(() => {
-      return Object.keys(order).some(id => {
-          const service = services.find(s => s.id === id);
-          return service && order[id] > 0 && service.isRemote;
-      });
-  }, [order, services]);
-
-  useEffect(() => {
-    const fetchAvailability = async () => {
-        if (!b) return;
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const monthAvailability = await ServerEndpoints.getCalendarAvailability(b.id, year, month);
-        setAvailability(monthAvailability);
-    };
-    fetchAvailability();
-  }, [b, currentDate]);
-
-  const handleDateSelect = async (day, status) => {
-      if (status === 'full' || !status) return;
-      const newSelectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      setSelectedDate(newSelectedDate);
-      setAvailableTimes([]);
-      setSelectedTime('');
-      const times = await ServerEndpoints.getAvailableTimes(b.id, newSelectedDate.toISOString().split('T')[0]);
-      setAvailableTimes(times);
-  };
-  
-  const handleBookClick = () => {
-    const orderedServices = Object.keys(order).map(id => {
+    const isRemoteServiceSelected = useMemo(() => Object.keys(order).some(id => {
         const service = services.find(s => s.id === id);
-        return { ...service, quantity: order[id] };
-    }).filter(s => s.quantity > 0);
+        return service && order[id] > 0 && service.isRemote;
+    }), [order, services]);
 
-    onBook(b, selectedDate.toISOString().split('T')[0], selectedTime, orderedServices, total, address, notes);
-    window.location.hash = '#profile';
-  };
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            if (!business) return;
+            const monthAvailability = await ServerEndpoints.getCalendarAvailability(business.id, selectedDate.year(), selectedDate.month());
+            setAvailability(monthAvailability);
+        };
+        fetchAvailability();
+    }, [selectedDate, business]);
 
-  const handleOrderChange = (serviceId, amount) => {
-    setOrder(prev => {
-        const newQuantity = (prev[serviceId] || 0) + amount;
-        if(newQuantity < 0) return prev;
-        return { ...prev, [serviceId]: newQuantity };
-    });
-  };
+    useEffect(() => {
+        const fetchTimes = async () => {
+            if (!selectedDate || !business) return;
+            const times = await ServerEndpoints.getAvailableTimes(business.id, selectedDate.format('YYYY-MM-DD'));
+            setAvailableTimes(times);
+            setSelectedTime('');
+        };
+        fetchTimes();
+    }, [selectedDate.format('YYYY-MM-DD'), business]);
 
-  const CalendarGrid = () => {
-    const month = currentDate.getMonth();
-    const year = currentDate.getFullYear();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    const today = new Date();
+    const handleOrderChange = (serviceId, amount) => {
+        setOrder(prev => ({ ...prev, [serviceId]: Math.max(0, (prev[serviceId] || 0) + amount) }));
+    };
 
-    const dayStatusClasses = {
-        full: 'bg-red-100 text-red-400 cursor-not-allowed dark:bg-red-900/30',
-        partial: 'bg-amber-100 text-amber-600 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50',
-        available: 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50',
-    };
+    const handleNext = () => {
+        if (activeStep === steps.length - 1) {
+            const orderedServices = Object.keys(order).map(id => ({ ...services.find(s => s.id === id), quantity: order[id] })).filter(s => s.quantity > 0);
+            handleCreateAppointment(business, selectedDate.toDate(), selectedTime, orderedServices, total, address, notes);
+        } else {
+            setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        }
+    };
 
-    let days = [];
-    for (let i = 0; i < startOffset; i++) days.push(<div key={`empty-${i}`}></div>);
-    for (let day = 1; day <= daysInMonth; day++) {
-        const isSelected = selectedDate && selectedDate.getDate() === day && selectedDate.getMonth() === month && selectedDate.getFullYear() === year;
-        const status = availability[day] || (new Date(year, month, day) < today ? 'full' : 'available');
-        const isPast = new Date(year, month, day) < new Date(today.toDateString());
+    const steps = [t.selectDateAndTime, t.selectServices, t.bookingSummary];
 
-        days.push(
-            <div key={day} onClick={() => handleDateSelect(day, isPast ? 'full' : status)}
-                 className={`relative flex items-center justify-center h-10 text-sm rounded-full transition-colors ${ isSelected ? 'bg-primary text-white' : isPast ? 'text-slate-400 cursor-not-allowed dark:text-slate-600' : dayStatusClasses[status] }`}>
-                {day}
-                {!isSelected && !isPast && status && <span className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${status === 'full' ? 'bg-red-500' : status === 'partial' ? 'bg-amber-500' : 'bg-green-500'}`}></span>}
-            </div>
-        );
-    }
-    return <div className="grid grid-cols-7 gap-1 text-center">{days}</div>;
-  };
-  
-  if(!b) return <div className="max-w-7xl mx-auto px-4 py-8">{t.businessNotFound}</div>;
+    if (!business) return <Typography>{t.businessNotFound}</Typography>;
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">{t.booking}</h1>
-            <p className="text-muted-foreground">{b.name}</p>
-        </div>
-        <Stepper currentStep={step} />
-        { step === 1 ? ( 
-        <div className="grid md:grid-cols-2 gap-8">
-            <Card>
-                <CardHeader><CardTitle>{t.selectDate}</CardTitle></CardHeader>
-                <CardContent>
-                    <div className="flex justify-between items-center mb-2">
-                        <Button variant="ghost" size="icon" onClick={() => setCurrentDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}><ChevronLeft className="h-4 w-4" /></Button>
-                        <div className="font-semibold">{new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' }).format(currentDate)}</div>
-                        <Button variant="ghost" size="icon" onClick={() => setCurrentDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}><ChevronRight className="h-4 w-4" /></Button>
-                    </div>
-                    <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-500 mb-2 dark:text-slate-400">
-                        {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(d => <div key={d}>{d}</div>)}
-                    </div>
-                    <CalendarGrid />
-                    <div className="flex justify-around text-xs mt-2">
-                        <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500"></span>{t.day_available}</div>
-                        <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500"></span>{t.day_partial}</div>
-                        <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500"></span>{t.day_full}</div>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card className={!selectedDate ? 'opacity-50' : ''}>
-                <CardHeader><CardTitle>{t.selectTime}</CardTitle></CardHeader>
-                <CardContent>
-                    {selectedDate ? (
-                        <>
-                            <p className="text-sm font-semibold mb-3">{new Intl.DateTimeFormat(lang, { dateStyle: 'full' }).format(selectedDate)}</p>
-                            <div className="grid grid-cols-3 lg:grid-cols-4 gap-2">
-                                {availableTimes.length > 0 ? availableTimes.map(time => (
-                                    <Button key={time} variant={selectedTime === time ? 'default' : 'outline'} onClick={() => setSelectedTime(time)}>
-                                        {time}
-                                    </Button>
-                                )) : <p className="text-sm text-slate-500 col-span-full dark:text-slate-400">Bu tarih için müsait saat bulunmuyor.</p>}
-                            </div>
-                        </>
-                    ) : <p className="text-sm text-muted-foreground">Lütfen bir tarih seçin.</p>}
-                </CardContent>
-            </Card>
-        </div>
-        ) : (
-            <div className="grid md:grid-cols-2 gap-8">
-                <Card>
-                    <CardHeader><CardTitle>{t.selectServices}</CardTitle></CardHeader>
-                    <CardContent className="flex flex-col h-[500px]">
-                        <Input 
-                            placeholder={t.searchService}
-                            value={searchQuery} 
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="mb-2"
-                        />
-                         <div className="flex-1 overflow-y-auto space-y-2 pr-2 -mr-2">
-                            {filteredServices.map(service => (
-                                <div key={service.id} className="flex items-center justify-between p-2 rounded-md bg-slate-50 dark:bg-slate-800/50">
-                                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => setViewingService(service)}>
-                                            <Camera className="h-4 w-4 text-slate-500" />
-                                        </Button>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium truncate" title={service.name}>{service.name}</p>
-                                            <p className="text-sm text-slate-500">{formatCurrency(service.price)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleOrderChange(service.id, -1)}><MinusCircle className="h-4 w-4"/></Button>
-                                        <span className="w-6 text-center">{order[service.id] || 0}</span>
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleOrderChange(service.id, 1)}><PlusCircle className="h-4 w-4" /></Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader><CardTitle>{t.bookingSummary}</CardTitle></CardHeader>
-                    <CardContent className="flex flex-col h-[500px]">
-                         <div className="text-sm font-medium mb-2">{new Intl.DateTimeFormat(lang, { dateStyle: 'full' }).format(selectedDate)} @ {selectedTime}</div>
-                         <div className="flex-grow space-y-2 overflow-y-auto pr-2 -mr-2">
-                            {Object.keys(order).map(id => {
-                                const s = services.find(s => s.id === id);
-                                if(!s || !order[id]) return null;
-                                return (
-                                    <div key={id} className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2 truncate">
-                                          <ServiceIcon name={s.icon} className="flex-shrink-0"/>
-                                          <span className="truncate pr-2">{s.name} x {order[id]}</span>
-                                        </div>
-                                        <span className="flex-shrink-0">{formatCurrency(s.price * order[id])}</span>
-                                    </div>
-                                )
-                            })}
-                         </div>
-                         {isRemoteServiceSelected && (
-                             <div className="mt-2 pt-2 border-t dark:border-slate-700 space-y-2">
-                                <Textarea placeholder={t.serviceAddress} value={address} onChange={e => setAddress(e.target.value)} />
-                                <Button variant="outline" size="sm" className="w-full" onClick={() => setAddress('Simülasyon: Kartal, İstanbul, 34876')}>{t.shareLocationInfo}</Button>
-                                <Textarea placeholder={t.specialNotes} value={notes} onChange={e => setNotes(e.target.value)} />
-                             </div>
-                         )}
-                         <div className="border-t pt-2 mt-2 dark:border-slate-700">
-                            <div className="flex justify-between font-bold text-lg">
-                                <span>{t.grandTotal}</span>
-                                <span>{formatCurrency(total)}</span>
-                            </div>
-                         </div>
-                    </CardContent>
-                </Card>
-            </div>
-        )}
-        <div className="flex justify-end items-center gap-2 mt-8">
-            <Button variant="ghost" onClick={step === 1 ? () => window.location.hash = `#business/${b.id}` : () => setStep(1)}>{step === 1 ? 'İptal' : t.back}</Button>
-            {step === 1 ? (
-                <Button onClick={() => setStep(2)} className="bg-primary hover:bg-primary/90" disabled={!selectedTime || !selectedDate}>
-                    Hizmet Seç <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-            ) : (
-                <Button onClick={handleBookClick} className="bg-primary hover:bg-primary/90" disabled={total === 0 || (isRemoteServiceSelected && !address)}>
-                    <Calendar className="h-4 w-4 mr-2" />{t.bookNow}
-                </Button>
+    return (
+        <Paper sx={{ p: 3 }}>
+            <Typography variant="h4" align="center" gutterBottom>{t.booking} - {business.name}</Typography>
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+                {steps.map((label, index) => <Step key={label}><StepLabel>{`${index + 1}. ${label}`}</StepLabel></Step>)}
+            </Stepper>
+
+            {activeStep === 0 && (
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={7}>
+                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+                            <StaticDatePicker 
+                                displayStaticWrapperAs="desktop" 
+                                openTo="day" 
+                                value={selectedDate} 
+                                onChange={(newValue) => setSelectedDate(newValue)} 
+                                shouldDisableDate={(day) => {
+                                    const dayStatus = availability[day.date()];
+                                    const isPast = day.isBefore(dayjs(), 'day');
+                                    return isPast || dayStatus === 'full';
+                                }}
+                                slots={{ day: (props) => {
+                                    const dayStatus = availability[props.day.date()];
+                                    const isInSameMonth = props.day.isSame(selectedDate, 'month');
+                                    const tooltipTitle = dayStatus === 'full' ? t.day_full : dayStatus === 'partial' ? t.day_partial : '';
+                                    
+                                    return (
+                                        <Tooltip 
+                                            title={tooltipTitle} 
+                                            placement="top"
+                                            arrow
+                                            disableHoverListener={!tooltipTitle} // Sadece title varsa hover dinle
+                                        >
+                                            <Badge
+                                                key={props.day.toString()}
+                                                overlap="circular"
+                                                color={dayStatus === 'full' ? 'error' : 'warning'}
+                                                variant="dot"
+                                                invisible={!isInSameMonth || !dayStatus || dayStatus === 'available'}
+                                            >
+                                                <PickersDay {...props} />
+                                            </Badge>
+                                        </Tooltip>
+                                    );
+                                }}}
+                            />
+                        </LocalizationProvider>
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                        <Typography variant="h6" gutterBottom>{t.availableTimes}</Typography>
+                        <ToggleButtonGroup value={selectedTime} exclusive onChange={(e, time) => setSelectedTime(time)} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                            {availableTimes.length > 0 ? 
+                                availableTimes.map(time => <ToggleButton key={time} value={time}>{time}</ToggleButton>) : 
+                                <Typography variant="body2" color="text.secondary">{t.noAvailableTimes}</Typography>}
+                        </ToggleButtonGroup>
+                    </Grid>
+                </Grid>
             )}
-        </div>
-         {viewingService && <ServiceImageModal isOpen={!!viewingService} onClose={() => setViewingService(null)} service={viewingService} />}
-    </div>
-  );
+
+            {activeStep === 1 && (
+                 <Grid container spacing={3}>
+                    <Grid item xs={12} md={7}>
+                        <Card><CardContent>
+                            <Typography variant="h6" gutterBottom>{t.selectServices}</Typography>
+                            <List>
+                                {services.map(service => (
+                                    <ListItem key={service.id} secondaryAction={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <IconButton onClick={() => handleOrderChange(service.id, -1)}><RemoveCircle /></IconButton>
+                                            <Typography>{order[service.id] || 0}</Typography>
+                                            <IconButton onClick={() => handleOrderChange(service.id, 1)}><AddCircle /></IconButton>
+                                        </Box>
+                                    }>
+                                        <ListItemText primary={service.name} secondary={formatCurrency(service.price)} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </CardContent></Card>
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                        <Card><CardContent>
+                            <Typography variant="h6" gutterBottom>{t.bookingSummary}</Typography>
+                            <Typography>Toplam: {formatCurrency(total)}</Typography>
+                        </CardContent></Card>
+                    </Grid>
+                </Grid>
+            )}
+
+            {activeStep === 2 && (
+                <Card><CardContent>
+                    <Typography variant="h6" gutterBottom>{t.bookingSummary}</Typography>
+                    <Typography>Tarih: {selectedDate.format('DD.MM.YYYY')} @ {selectedTime}</Typography>
+                    <List>
+                        {Object.keys(order).filter(id => order[id] > 0).map(id => {
+                            const s = services.find(s => s.id === id);
+                            return <ListItem key={id}><ListItemText primary={`${s.name} x ${order[id]}`} secondary={formatCurrency(s.price * order[id])} /></ListItem>
+                        })}
+                    </List>
+                    <Typography variant="h5" align="right">Toplam: {formatCurrency(total)}</Typography>
+                    {isRemoteServiceSelected && (
+                        <Box sx={{ mt: 2 }}>
+                            <TextField label={t.serviceAddress} value={address} onChange={e => setAddress(e.target.value)} fullWidth required />
+                            <TextField label={t.specialNotes} value={notes} onChange={e => setNotes(e.target.value)} fullWidth multiline rows={2} sx={{ mt: 2 }} />
+                        </Box>
+                    )}
+                </CardContent></Card>
+            )}
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <Button disabled={activeStep === 0} onClick={() => setActiveStep(prev => prev - 1)} sx={{ mr: 1 }}>{t.back}</Button>
+                <Button variant="contained" onClick={handleNext} disabled={(activeStep === 0 && !selectedTime) || (activeStep === 2 && total === 0)}>{activeStep === steps.length - 1 ? t.bookNow : t.next}</Button>
+            </Box>
+        </Paper>
+    );
 }

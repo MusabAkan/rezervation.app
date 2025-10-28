@@ -1,177 +1,146 @@
 import React, { useMemo, useState } from 'react';
-import { CustomSelect } from '../components/ui/CustomSelect'; // Yeni CustomSelect bileşeni import edildi
-import { Button } from "../components/ui//button";
-import { Card, CardContent } from "../components/ui//card";
-import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui//badge";
-import { Avatar, AvatarFallback } from "../components/ui/avatar";
-import { Filter, MapPin, CalendarPlus } from "lucide-react";
-import Stars from '../components/common/Stars';
-import AdBanner from "../components/common/AdBanner";
-import { CATEGORIES } from '../data/mockData';
-import { RangeSlider } from '../components/ui/RangeSlider';
+import { Input, Select, Slider, Button, Card, Grid, Chip, Rating, Typography, MenuItem, CardContent, CardActions, Box, Paper } from '@mui/material';
+import { FilterList, Clear, LocationOn, CalendarToday, Info } from '@mui/icons-material';
+import { CATEGORIES, INITIAL_BUSINESSES_DATA } from '../data/mockData';
+import { useAppContext } from '../App';
 
-function Filters({ t, values, setValues }) {
-  const [tmp, setTmp] = useState(() => ({ 
-    ...values,
-    distance: values.distance !== undefined ? values.distance : [0, 50],
-    rating: values.rating !== undefined ? values.rating : [0, 5],
-    cat: values.cat || null,
-    sub: values.sub || [],
-  }));
-
-  const categoryOptions = CATEGORIES.map(c => ({ value: c.id, label: c.name }));
-  const subCategoryOptions = useMemo(() => {
-    const selectedCategory = CATEGORIES.find(c => c.id === tmp.cat?.value);
-    return selectedCategory ? selectedCategory.subs.map(s => ({ value: s, label: s })) : [];
-  }, [tmp.cat]);
-
-  const handleCategoryChange = (selectedOption) => {
-    setTmp(prev => ({ ...prev, cat: selectedOption, sub: [] })); 
-  };
-
-  const handleSubcategoriesChange = (selectedOptions) => {
-    setTmp(prev => ({ ...prev, sub: selectedOptions || [] }));
-  };
-
-  const handleDistanceChange = (newRange) => {
-    setTmp(prev => ({ ...prev, distance: newRange }));
-  };
-
-  const handleRatingChange = (newRange) => {
-    setTmp(prev => ({ ...prev, rating: newRange }));
-  };
-
-  const apply = () => setValues(tmp);
-  const clear = () => {
-    const cleared = { q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: null, sub: [] };
-    setTmp(cleared);
-    setValues(cleared);
-  };
-
-  return (
-    <div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Input value={tmp.q} onChange={e => setTmp({ ...tmp, q: e.target.value })} placeholder={`${t.search}...`} />
-        
-        <CustomSelect
-          options={[{ value: 'all', label: t.categories }, ...categoryOptions]}
-          value={tmp.cat}
-          onChange={handleCategoryChange}
-          placeholder={t.categories}
-          isSearchable
-        />
-
-        <CustomSelect
-          isMulti
-          options={subCategoryOptions}
-          value={tmp.sub}
-          onChange={handleSubcategoriesChange}
-          placeholder="Alt Kategoriler"
-          isDisabled={!tmp.cat || tmp.cat.value === 'all'}
-          isSearchable
-          closeMenuOnSelect={false}
-        />
-
-        <RangeSlider
-          label={t.distance || "Mesafe"}
-          min={0}
-          max={50}
-          value={tmp.distance}
-          onValueChange={handleDistanceChange}
-          step={1}
-          unit=" km"
-          t={t}
-        />
-
-        <RangeSlider
-          label={t.rating || "Puan"}
-          min={0}
-          max={5}
-          value={tmp.rating}
-          onValueChange={handleRatingChange}
-          step={0.5}
-          unit=""
-          t={t}
-        />
-
-        <CustomSelect
-          options={[
-            { value: 'any', label: `${t.price}: Hepsi` },
-            { value: '$', label: '$' },
-            { value: '$$', label: '$$' },
-            { value: '$$$', label: '$$$' },
-          ]}
-          value={tmp.price ? { value: tmp.price, label: tmp.price === 'any' ? `${t.price}: Hepsi` : tmp.price } : null}
-          onChange={option => setTmp({ ...tmp, price: option.value })}
-          placeholder={t.price}
-        />
-      </div>
-      <div className="mt-4 flex gap-2"><Button className="bg-primary hover:bg-primary/90" onClick={apply}><Filter className="h-4 w-4 mr-2" />{t.apply}</Button><Button variant="outline" onClick={clear}>{t.clear}</Button></div>
-    </div>
-  );
+function AdBanner() {
+    const { t } = useAppContext();
+    return (
+        <Card variant="outlined" sx={{ my: 4, p: 2, textAlign: 'center', backgroundColor: 'action.hover' }}>
+            <Typography variant="subtitle1">{t.adSpace}</Typography>
+        </Card>
+    );
 }
 
-function BusinessCard({ t, b }) {
-  const category = CATEGORIES.find(c => c.id === b.category);
-  return (
-    <Card
-      className="w-full max-w-sm bg-white hover:shadow-md transition overflow-hidden dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600 h-52 flex flex-col">
-      <CardContent className="p-4 grid grid-cols-[64px,1fr] gap-4 flex-grow items-center">
-        <Avatar
-          className="h-16 w-16 border self-start mt-2"><AvatarFallback>{b.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</AvatarFallback></Avatar>
-        <div>
-          <div className="flex items-start justify-between">
-            <div>
-              <a href={`#business/${b.id}`}
-                className="font-semibold leading-tight text-slate-800 dark:text-slate-200 hover:underline">{b.name}</a>
-              <div className="text-xs text-slate-500 dark:text-slate-400">{category?.name}</div>
-              <div className="mt-1"><Stars value={b.rating} /></div>
-            </div>
-            <div className="text-right flex flex-col items-end">
-              <Badge variant="secondary" className="mb-1"><MapPin
-                className="h-3 w-3 mr-1" /> {b.distanceKm} {t.km}</Badge>
-              <div className="text-lg font-bold text-slate-600 dark:text-slate-400">{b.priceLevel}</div>
-            </div>
-          </div>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{b.description}</p>
-          <div className="mt-3 flex flex-wrap gap-2 items-center justify-end">
-            <Button size="sm" asChild><a href={`#book/${b.id}`}><CalendarPlus className="h-4 w-4 mr-2" />{t.bookNow}</a></Button>
-            <Button size="sm" variant="secondary" asChild><a
-              href={`#business/${b.id}`}>{t.seeDetails}</a></Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+function Filters({ values, setValues }) {
+    const { t } = useAppContext();
+    const [tmp, setTmp] = useState(values);
 
-export default function Explore({ t, lang, businesses }) {
-  const [filters, setFilters] = useState({ q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: null, sub: [] });
+    const categoryOptions = CATEGORIES.map(c => ({ value: c.id, label: c.name }));
+    const subCategoryOptions = useMemo(() => {
+        const selectedCategory = CATEGORIES.find(c => c.id === tmp.cat);
+        return selectedCategory ? selectedCategory.subs.map(s => ({ value: s, label: s })) : [];
+    }, [tmp.cat]);
 
-  const results = useMemo(() => businesses.filter(b => {
-    const [minKm, maxKm] = filters.distance;
-    const [minRate, maxRate] = filters.rating;
+    const handleCategoryChange = (selectedOptionValue) => {
+        setTmp(prev => ({ ...prev, cat: selectedOptionValue, sub: [] }));
+    };
+
+    const handleSubcategoriesChange = (selectedOptionValues) => {
+        setTmp(prev => ({ ...prev, sub: selectedOptionValues || [] }));
+    };
+
+    const handleDistanceChange = (newRange) => {
+        setTmp(prev => ({ ...prev, distance: newRange }));
+    };
+
+    const handleRatingChange = (newRange) => {
+        setTmp(prev => ({ ...prev, rating: newRange }));
+    };
+
+    const apply = () => setValues(tmp);
+    const clear = () => {
+        const cleared = { q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: 'all', sub: [] };
+        setTmp(cleared);
+        setValues(cleared);
+    };
 
     return (
-      (!filters.cat || filters.cat.value === 'all' || b.category === filters.cat.value) &&
-      (filters.sub.length === 0 || (b.subs && filters.sub.every(s => b.subs.includes(s.value)))) &&
-      (filters.price === 'any' || b.priceLevel === filters.price) &&
-      (b.distanceKm >= minKm && b.distanceKm <= maxKm) && 
-      (b.rating >= minRate && b.rating <= maxRate) && 
-      (filters.q === '' || b.name.toLowerCase().includes(filters.q.toLowerCase()))
-    );
-  }), [filters, businesses]);
+        <Paper variant="outlined" sx={{ mb: 4, p: 2 }}>
+            <Typography variant="h6" gutterBottom>{t.filters}</Typography>
+            <Grid container spacing={2}>
+                {/* Arama Kutusu - Tüm satırı kaplasın */}
+                <Grid item xs={12}>
+                    <Input value={tmp.q} onChange={e => setTmp({ ...tmp, q: e.target.value })} placeholder={`${t.search}...`} fullWidth />
+                </Grid>
 
-  return (
-    <div id="explore" className="max-w-7xl mx-auto px-4 py-8">
-      <div className="p-4 rounded-lg border bg-white mb-6 dark:bg-slate-800 dark:border-slate-700"><Filters t={t}
-        values={filters}
-        setValues={setFilters} />
-      </div>
-      <AdBanner t={t} />
-      <div className="flex flex-wrap justify-center gap-4">{results.map(b => (
-        <BusinessCard key={b.id} t={t} b={b} />))}</div>
-    </div>
-  );
+                {/* Kategori ve Alt Kategori - Yan yana, her biri yarım satır */}
+                <Grid item xs={12} sm={6}>
+                    <Select value={tmp.cat} onChange={e => setTmp({ ...tmp, cat: e.target.value, sub: [] })} displayEmpty fullWidth>
+                        <MenuItem value="all">{t.categories}</MenuItem>
+                        {categoryOptions.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
+                    </Select>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                    <Select multiple value={tmp.sub} onChange={e => setTmp({ ...tmp, sub: e.target.value })} disabled={!tmp.cat || tmp.cat === 'all'} fullWidth displayEmpty renderValue={(selected) => selected.join(', ')}>
+                        <MenuItem disabled value="">{t.selectSubCategory}</MenuItem>
+                        {subCategoryOptions.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
+                    </Select>
+                </Grid>
+
+                {/* Mesafe - Kendi satırında */}
+                <Grid item xs={12}>
+                    <Typography variant="body2">{t.distance} ({tmp.distance[0]} - {tmp.distance[1]} km)</Typography>
+                    <Slider value={tmp.distance} onChange={(e, val) => setTmp({...tmp, distance: val})} min={0} max={50} valueLabelDisplay="auto" />
+                </Grid>
+                {/* Puan - Kendi satırında */}
+                <Grid item xs={12}>
+                    <Typography variant="body2">{t.rating} ({tmp.rating[0]} - {tmp.rating[1]})</Typography>
+                    <Slider value={tmp.rating} onChange={(e, val) => setTmp({...tmp, rating: val})} min={0} max={5} step={0.5} valueLabelDisplay="auto" />
+                </Grid>
+
+                {/* Fiyat Seçimi - Tüm satırı kaplasın */}
+                <Grid item xs={12}>
+                    <Select value={tmp.price} onChange={e => setTmp({ ...tmp, price: e.target.value })} fullWidth>
+                        <MenuItem value="any">{t.price}: Hepsi</MenuItem>
+                        <MenuItem value="$">$</MenuItem>
+                        <MenuItem value="$$">$$</MenuItem>
+                        <MenuItem value="$$$">$$$</MenuItem>
+                    </Select>
+                </Grid>
+
+                {/* Butonlar - Tüm satırı kaplasın, sağa hizalı */}
+                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Button variant="contained" onClick={apply} startIcon={<FilterList />}>{t.apply}</Button>
+                    <Button onClick={clear} sx={{ ml: 1 }}>{t.clear}</Button>
+                </Grid>
+            </Grid>
+        </Paper>
+    );
+}
+
+export default function Explore() {
+    const { t } = useAppContext();
+    const [filters, setFilters] = useState({ q: '', distance: [0, 50], rating: [0, 5], price: 'any', cat: 'all', sub: [] });
+
+    const results = useMemo(() => INITIAL_BUSINESSES_DATA.filter(b => {
+        const [minKm, maxKm] = filters.distance;
+        const [minRate, maxRate] = filters.rating;
+        return (
+            (filters.cat === 'all' || b.category === filters.cat) &&
+            (filters.sub.length === 0 || (b.subs && filters.sub.every(s => b.subs.includes(s)))) &&
+            (filters.price === 'any' || b.priceLevel === filters.price) &&
+            (b.distanceKm >= minKm && b.distanceKm <= maxKm) &&
+            (b.rating >= minRate && b.rating <= maxRate) &&
+            (filters.q === '' || b.name.toLowerCase().includes(filters.q.toLowerCase()))
+        );
+    }), [filters]);
+
+    return (
+        <Box>
+            <Filters values={filters} setValues={setFilters} />
+            <AdBanner />
+            <Grid container spacing={3}>
+                {results.map(b => (
+                    <Grid item xs={12} sm={6} md={4} key={b.id}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                    <Typography variant="h6">{b.name}</Typography>
+                                    <Chip label={`${b.distanceKm} ${t.km}`} size="small" />
+                                </Box>
+                                <Rating value={b.rating} readOnly size="small" />
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{b.description}</Typography>
+                            </CardContent>
+                            <CardActions sx={{ justifyContent: 'flex-end' }}>
+                                <Button size="small" href={`#book/${b.id}`} startIcon={<CalendarToday />}>{t.bookNow}</Button>
+                                <Button size="small" href={`#business/${b.id}`} startIcon={<Info />}>{t.seeDetails}</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+        </Box>
+    );
 }

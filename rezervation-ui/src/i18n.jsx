@@ -24,7 +24,7 @@ export const dict = {
     approve: "Onayla",
     decline: "Reddet",
     bookNow: "Randevu Al",
-    selectServices: "3. Hizmetleri Seçin",
+    selectServices: "Hizmetleri Seçin",
     grandTotal: "Genel Toplam",
     seeDetails: "Detayları Gör",
     writeMessage: "Mesajınızı buraya yazın...",

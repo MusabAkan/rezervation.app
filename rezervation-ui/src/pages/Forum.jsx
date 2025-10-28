@@ -1,13 +1,11 @@
-import React, {useState} from 'react';
-import {Button} from "../components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
-import {Input} from "../components/ui/input";
-import {Badge} from "../components/ui/badge";
-import {ThumbsUp, MessageCircleMore} from "lucide-react";
-import AdBanner from '../components/common/AdBanner';
-import {INITIAL_FORUM_POSTS} from '../data/mockData';
+import React, { useState } from 'react';
+import { Box, Card, CardContent, Typography, TextField, Button, List, ListItem, ListItemText, Avatar, Chip } from '@mui/material';
+import { ThumbUp, Message } from '@mui/icons-material';
+import { useAppContext } from '../App';
+import { INITIAL_FORUM_POSTS } from '../data/mockData';
 
-export default function Forum({t}) {
+export default function Forum() {
+    const { t } = useAppContext();
     const [posts, setPosts] = useState(INITIAL_FORUM_POSTS);
     const [newPost, setNewPost] = useState("");
 
@@ -15,7 +13,7 @@ export default function Forum({t}) {
         if (!newPost.trim()) return;
         const newPostData = {
             id: `p${Date.now()}`,
-            type: 'customer', // Assume the current user is a customer for simplicity
+            type: 'customer',
             author: 'Siz',
             text: newPost,
             replies: 0,
@@ -26,47 +24,34 @@ export default function Forum({t}) {
     };
 
     return (
-        <div id="forum" className="max-w-4xl mx-auto px-4 py-8">
-            <Card className="mb-6">
-                <CardHeader><CardTitle>{t.postQuestion}</CardTitle></CardHeader>
+        <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Card sx={{ mb: 3 }}>
                 <CardContent>
-                    <div className="flex gap-2">
-                        <Input value={newPost} onChange={(e) => setNewPost(e.target.value)}
-                               placeholder={t.postQuestion}/>
-                        <Button onClick={handlePost} className="bg-primary hover:bg-primary/90">{t.post}</Button>
-                    </div>
+                    <Typography variant="h6" gutterBottom>{t.postQuestion}</Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <TextField value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder={t.postQuestion} fullWidth />
+                        <Button variant="contained" onClick={handlePost}>{t.post}</Button>
+                    </Box>
                 </CardContent>
             </Card>
 
-            <div className="space-y-4">
-                {posts.map((post, index) => (
-                    <React.Fragment key={post.id}>
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center gap-2">
-                                    <Badge variant={post.type === 'business' ? 'default' : 'secondary'}
-                                           className={post.type === 'business' ? 'bg-primary' : ''}>
-                                        {post.type === 'business' ? t.businessResponse : t.customerQuestion}
-                                    </Badge>
-                                    <span className="font-semibold">{post.author}</span>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="mb-4">{post.text}</p>
-                                <div className="flex items-center gap-4 text-sm text-slate-500">
-                                    <Button variant="ghost" size="sm" className="gap-2"><ThumbsUp
-                                        className="h-4 w-4"/> {post.likes}</Button>
-                                    <Button variant="ghost" size="sm" className="gap-2"><MessageCircleMore
-                                        className="h-4 w-4"/> {post.replies} Yanıt</Button>
-                                    <span
-                                        className="ml-auto text-xs">{post.type === 'business' ? '+10 Puan' : ''}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        {index === 1 && <AdBanner t={t}/>}
-                    </React.Fragment>
+            <List>
+                {posts.map((post) => (
+                    <Card key={post.id} sx={{ mb: 2 }}>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <Chip label={post.type === 'business' ? t.businessResponse : t.customerQuestion} color={post.type === 'business' ? 'primary' : 'default'} size="small" sx={{ mr: 1 }} />
+                                <Typography variant="subtitle2" fontWeight="bold">{post.author}</Typography>
+                            </Box>
+                            <Typography variant="body1" sx={{ mb: 2 }}>{post.text}</Typography>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', color: 'text.secondary' }}>
+                                <Button size="small" startIcon={<ThumbUp />}>{post.likes}</Button>
+                                <Button size="small" startIcon={<Message />}>{post.replies} {t.replies}</Button>
+                            </Box>
+                        </CardContent>
+                    </Card>
                 ))}
-            </div>
-        </div>
+            </List>
+        </Box>
     );
 }

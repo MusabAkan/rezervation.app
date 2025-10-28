@@ -1,60 +1,59 @@
 import React from 'react';
-import {Button} from "../components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
-import {Avatar, AvatarFallback, AvatarImage} from "../components/ui/avatar";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
-import Stars from '../components/common/Stars';
-import {formatCurrency} from '../utils/helpers';
+import { Card, Avatar, Typography, Tabs, Tab, List, ListItem, ListItemText, Button, Rating, Chip, Box } from '@mui/material';
+import { useAppContext } from '../App';
+import { formatCurrency } from '../utils/helpers';
 
-export default function CustomerProfile({t, user, appointments, onRate}) {
-    const upcoming = appointments.filter(a => a.customerId === user.id && ['confirmed', 'pending'].includes(a.status));
-    const past = appointments.filter(a => a.customerId === user.id && ['completed', 'noshow'].includes(a.status));
+function TabPanel(props) {
+    const { children, value, index, ...other } = props;
+    return (
+        <div role="tabpanel" hidden={value !== index} {...other}>
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
+    );
+}
+
+export default function CustomerProfile() {
+    const { t, currentUser, appointments, setRatingModalAppointment } = useAppContext();
+    const [tabValue, setTabValue] = React.useState(0);
+
+    if (!currentUser) return null;
+
+    const upcoming = appointments.filter(a => a.customerId === currentUser.id && ['confirmed', 'pending'].includes(a.status));
+    const past = appointments.filter(a => a.customerId === currentUser.id && ['completed', 'noshow'].includes(a.status));
 
     return (
-        <div id="profile" className="max-w-4xl mx-auto px-4 py-8">
-            <Card className="bg-white dark:bg-slate-800 dark:border-slate-700">
-                <CardHeader className="flex flex-row items-center gap-4">
-                    <Avatar className="h-20 w-20"><AvatarImage
-                        src={user.photo}/><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar>
-                    <div><CardTitle className="text-2xl">{user.name}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1"><span
-                            className="text-sm text-slate-500 dark:text-slate-400">{t.customerRating}:</span><Stars
-                            value={user.rating}/></div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="upcoming">
-                        <TabsList><TabsTrigger value="upcoming">{t.upcomingAppointments}</TabsTrigger><TabsTrigger
-                            value="past">{t.pastAppointments}</TabsTrigger></TabsList>
-                        <TabsContent value="upcoming" className="mt-4 space-y-3">
-                            {upcoming.length > 0 ? upcoming.map(a => (<div key={a.id}
-                                                                           className="p-3 rounded-lg border flex items-center justify-between dark:border-slate-700">
-                                    <div>
-                                        <div
-                                            className="font-medium">{a.businessName} - {a.services[0].name}{a.services.length > 1 ? ` ve ${a.services.length - 1} diğer...` : ''}</div>
-                                        <div className="text-sm text-slate-500 dark:text-slate-400">{a.date} @ {a.time} -
-                                            Toplam: {formatCurrency(a.totalPrice)}</div>
-                                    </div>
-                                    <Button variant="outline">Detay / İptal</Button></div>)) :
-                                <p className="text-sm text-center text-slate-500 py-4">Yaklaşan randevunuz
-                                    bulunmuyor.</p>}
-                        </TabsContent>
-                        <TabsContent value="past" className="mt-4 space-y-3">
-                            {past.length > 0 ? past.map(a => (<div key={a.id}
-                                                                   className="p-3 rounded-lg border flex items-center justify-between dark:border-slate-700">
-                                <div>
-                                    <div
-                                        className="font-medium">{a.businessName} - {a.services[0].name}{a.services.length > 1 ? ` ve ${a.services.length - 1} diğer...` : ''}</div>
-                                    <div className="text-sm text-slate-500 dark:text-slate-400">{a.date}</div>
-                                </div>
-                                {a.status === 'completed' && <Button onClick={() => onRate(a)}
-                                                                     disabled={a.rated}>{a.rated ? t.alreadyRated : t.rateService}</Button>}
-                            </div>)) : <p className="text-sm text-center text-slate-500 py-4">Geçmiş randevunuz
-                                bulunmuyor.</p>}
-                        </TabsContent>
-                    </Tabs>
-                </CardContent>
-            </Card>
-        </div>
+        <Card>
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <Avatar sx={{ width: 80, height: 80, mr: 2 }} src={currentUser.photo}>{currentUser.name.split(' ').map(n => n[0]).join('')}</Avatar>
+                <Box>
+                    <Typography variant="h5">{currentUser.name}</Typography>
+                    <Rating value={currentUser.rating} readOnly />
+                </Box>
+            </Box>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} centered>
+                    <Tab label={t.upcomingAppointments} />
+                    <Tab label={t.pastAppointments} />
+                </Tabs>
+            </Box>
+            <TabPanel value={tabValue} index={0}>
+                <List>
+                    {upcoming.map(a => (
+                        <ListItem key={a.id} secondaryAction={<Button size="small">{t.cancel}</Button>}>
+                            <ListItemText primary={`${a.businessName} - ${a.services[0].name}`} secondary={`${a.date} @ ${a.time} - ${formatCurrency(a.totalPrice)}`} />
+                        </ListItem>
+                    ))}
+                </List>
+            </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+                <List>
+                    {past.map(a => (
+                        <ListItem key={a.id} secondaryAction={a.status === 'completed' && <Button size="small" onClick={() => setRatingModalAppointment(a)} disabled={a.rated}>{a.rated ? t.alreadyRated : t.rateService}</Button>}>
+                            <ListItemText primary={`${a.businessName} - ${a.services[0].name}`} secondary={a.date} />
+                        </ListItem>
+                    ))}
+                </List>
+            </TabPanel>
+        </Card>
     );
 }

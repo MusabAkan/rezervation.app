@@ -1,36 +1,32 @@
-import React, {useState} from 'react';
-import {Button} from "../components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
-import {Video, Award} from "lucide-react";
+import React, { useState } from 'react';
+import { Box, Card, CardContent, Typography, Button } from '@mui/material';
+import { PlayCircle, EmojiEvents } from '@mui/icons-material';
+import { useAppContext } from '../App';
 
-export default function Rewards({t}) {
+export default function Rewards() {
+    const { t } = useAppContext();
     const [points, setPoints] = useState(150);
 
     return (
-        <div id="rewards" className="max-w-4xl mx-auto px-4 py-8">
+        <Box sx={{ maxWidth: 800, mx: 'auto' }}>
             <Card>
-                <CardHeader><CardTitle>{t.rewards}</CardTitle></CardHeader>
-                <CardContent className="space-y-6">
-                    <div
-                        className="p-4 rounded-lg border bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-center">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{t.yourPoints}</p>
-                        <p className="text-4xl font-bold">{points}</p>
-                        <Button className="mt-4 w-full sm:w-auto bg-primary hover:bg-primary/90"
-                                onClick={() => setPoints(p => p + 10)}><Video
-                            className="mr-2 h-4 w-4"/>{t.watchAdForPoints}</Button>
-                    </div>
-                    <Card className="bg-gradient-to-r from-primary to-indigo-600 text-white">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Award
-                                className="h-5 w-5"/> {t.pilotBusiness}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-center">
-                            <p className="text-2xl font-bold">Mavi Berber</p>
-                            <p className="text-lg font-semibold">{t.extraDiscount}</p>
-                        </CardContent>
-                    </Card>
+                <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="h5" gutterBottom>{t.rewards}</Typography>
+                    <Typography variant="h2" fontWeight="bold" color="primary">{points}</Typography>
+                    <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>{t.yourPoints}</Typography>
+                    <Button variant="contained" startIcon={<PlayCircle />} onClick={() => setPoints(p => p + 10)}>
+                        {t.watchAdForPoints}
+                    </Button>
                 </CardContent>
             </Card>
-        </div>
+            <Card sx={{ mt: 3, background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)', color: 'white' }}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                    <EmojiEvents sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="h6">{t.pilotBusiness}</Typography>
+                    <Typography variant="h4" fontWeight="bold">Mavi Berber</Typography>
+                    <Typography variant="h5">{t.extraDiscount}</Typography>
+                </CardContent>
+            </Card>
+        </Box>
     );
 }

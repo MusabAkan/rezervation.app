@@ -1,36 +1,42 @@
 import React from 'react';
-import { Button } from "../ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Sparkles, Languages, LogIn, Menu } from "lucide-react";
-import NotificationBell from './NotificationBell';
-import UserNav from './UserNav';
-import ThemeToggleButton from './ThemeToggleButton';
+import { AppBar, Toolbar, Typography, Button, Select, MenuItem, IconButton, Badge } from '@mui/material';
+import { Menu as MenuIcon, Star, Language, Login, Logout, Notifications } from '@mui/icons-material';
+import { useAppContext } from '../../App';
 
-export default function Header({ t, lang, setLang, onAuthOpen, currentUser, onLogout, onSidebarOpen, notifications, onMarkAllRead }) {
-  return (
-    <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30 dark:bg-slate-800 dark:border-slate-700">
-        <Button variant="outline" size="icon" className="shrink-0" onClick={onSidebarOpen}>
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">{t.toggleNavigation}</span>
-        </Button>
-        <div className="w-full flex-1">
-             <a href="#explore" className="flex items-center gap-2 font-semibold">
-                <Sparkles className="h-6 w-6 text-primary" />
-                <span className="text-slate-800 dark:text-slate-200">{t.appName}</span>
-            </a>
-        </div>
-        <Select value={lang} onValueChange={setLang}>
-            <SelectTrigger className="w-[120px]"><Languages className="mr-2 h-4 w-4" /><SelectValue placeholder={t.language} /></SelectTrigger>
-            <SelectContent><SelectItem value="tr">Türkçe</SelectItem><SelectItem value="en">English</SelectItem><SelectItem value="es">Español</SelectItem></SelectContent>
-        </Select>
-        <ThemeToggleButton t={t} />
-        {currentUser ? (
-            <>
-                <NotificationBell t={t} notifications={notifications} onMarkAllRead={onMarkAllRead} />
-                <UserNav t={t} user={currentUser} onLogout={onLogout} />
-            </>
-                ) : (
-                   <Button onClick={onAuthOpen} className="bg-primary hover:bg-primary/90"><LogIn className="h-4 w-4 mr-2" /> {t.auth}</Button>
-                )}    </header>
-  );
+export default function Header() {
+    const { t, lang, setLang, currentUser, onAuthOpen, onLogout, onSidebarOpen, notifications, onMarkAllRead } = useAppContext();
+
+    return (
+        <AppBar position="fixed">
+            <Toolbar>
+                <IconButton color="inherit" edge="start" onClick={onSidebarOpen} sx={{ mr: 2 }}>
+                    <MenuIcon />
+                </IconButton>
+                <Star sx={{ mr: 1 }} />
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    {t.appName}
+                </Typography>
+                <Select value={lang} onChange={(e) => setLang(e.target.value)} size="small" sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' }, '& .MuiSvgIcon-root': { color: 'white' } }}>
+                    <MenuItem value="tr">🇹🇷 TR</MenuItem>
+                    <MenuItem value="en">🇬🇧 EN</MenuItem>
+                </Select>
+                {currentUser ? (
+                    <>
+                        <IconButton color="inherit" onClick={onMarkAllRead}>
+                            <Badge badgeContent={notifications.filter(n => !n.read).length} color="error">
+                                <Notifications />
+                            </Badge>
+                        </IconButton>
+                        <Button color="inherit" onClick={onLogout} startIcon={<Logout />}>
+                            {t.logout}
+                        </Button>
+                    </>
+                ) : (
+                    <Button color="inherit" onClick={onAuthOpen} startIcon={<Login />}>
+                        {t.login}
+                    </Button>
+                )}
+            </Toolbar>
+        </AppBar>
+    );
 }

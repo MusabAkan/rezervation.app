@@ -1,18 +1,9 @@
-import React, {useState, useEffect} from 'react';
-import {Button} from "../ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-    DialogClose
-} from "../ui/dialog";
-import {Textarea} from "../ui/textarea";
-import Stars from '../common/Stars';
+import React, { useState, useEffect } from 'react';
+import { Modal, Box, Typography, Button, Rating, TextField } from '@mui/material';
+import { useAppContext } from '../../App';
 
-export default function RatingModal({t, isOpen, onClose, onSubmit, appointment}) {
+export default function RatingModal({ isOpen, onClose, onSubmit, appointment }) {
+    const { t } = useAppContext();
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
 
@@ -29,29 +20,17 @@ export default function RatingModal({t, isOpen, onClose, onSubmit, appointment})
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{t.rateService}: {appointment?.businessName}</DialogTitle>
-                    <DialogDescription className="sr-only">{t.yourComment}</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                    <div>
-                        <label className="text-sm font-medium">{t.yourRating}</label>
-                        <div className="mt-2 flex justify-center"><Stars value={rating} setValue={setRating}
-                                                                         interactive={true}/></div>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium">{t.yourComment}</label>
-                        <Textarea value={comment} onChange={(e) => setComment(e.target.value)} className="mt-2"/>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="outline">İptal</Button></DialogClose>
-                    <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90"
-                            disabled={rating === 0}>{t.submitReview}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <Modal open={isOpen} onClose={onClose}>
+            <Box sx={{ p: 4, bgcolor: 'background.paper', borderRadius: 1 }}>
+                <Typography variant="h6" component="h2">{t.rateService}</Typography>
+                <Typography sx={{ mt: 2 }}>{t.howWasYourExperienceWith} <strong>{appointment?.businessName}</strong>?</Typography>
+                <Rating name="rating" value={rating} onChange={(event, newValue) => { setRating(newValue); }} sx={{ my: 2 }} />
+                <TextField label={t.yourComment} multiline rows={4} value={comment} onChange={(e) => setComment(e.target.value)} fullWidth />
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Button onClick={onClose}>{t.cancel}</Button>
+                    <Button variant="contained" onClick={handleSubmit}>{t.submitReview}</Button>
+                </Box>
+            </Box>
+        </Modal>
     );
 }
