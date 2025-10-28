@@ -3,6 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Box, AppBar, Toolbar, Typography, Container, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, IconButton, Select, MenuItem, Avatar, Badge, Tooltip, Menu, Button, Snackbar, Alert, CircularProgress, Modal, CssBaseline, Divider } from '@mui/material';
 import { Menu as MenuIcon, Explore as ExploreIcon, Dashboard, Person, Mail, Notifications as NotificationsIcon, Settings as SettingsIcon, Logout, Login, Brightness4, Brightness7, Star, CalendarToday, CheckCircle } from '@mui/icons-material';
 
+// Orijinal projedeki importlar korunuyor, sadece UI bileşenleri MUI ile değiştirilecek
 import { INITIAL_APPOINTMENTS, INITIAL_FORUM_POSTS, INITIAL_NOTIFICATIONS, INITIAL_MESSAGES, MOCK_SERVICES } from './data/mockData';
 import { ServerEndpoints } from './services/api';
 import Hero from './pages/Hero.jsx';
@@ -43,7 +44,7 @@ export default function App() {
     const [messages, setMessages] = useState(INITIAL_MESSAGES);
     const [businesses, setBusinesses] = useState([]);
     const [services, setServices] = useState(MOCK_SERVICES);
-    const [toast, setToast] = useState({ open: false, message: '' });
+    const [toast, setToast] = useState({ open: false, message: '', severity: 'success' }); // severity eklendi
     const [currentPage, setCurrentPage] = useState(() => window.location.hash || '#');
     const [ratingModalAppointment, setRatingModalAppointment] = useState(null);
     const [isAuthModalOpen, setAuthModalOpen] = useState(false);
@@ -90,13 +91,59 @@ export default function App() {
 
     // --- TÜM ORİJİNAL HANDLER FONKSİYONLARI KORUNUYOR ---
     const handleMarkAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    const showToast = (messageKey) => setToast({ open: true, message: t[messageKey] });
-    const handleLogin = (user) => { setCurrentUser(user); setAuthModalOpen(false); window.location.hash = '#explore'; };
+    const showToast = (type, messageKey) => setToast({ open: true, message: t[messageKey], severity: type }); // severity eklendi
+    const handleLogin = (user) => { 
+        setCurrentUser(user); 
+        setAuthModalOpen(false); 
+        // Giriş sonrası bekleyen rezervasyon kontrolü
+        const pendingBookingJSON = localStorage.getItem('pendingBooking');
+        if (pendingBookingJSON) {
+            const pendingBooking = JSON.parse(pendingBookingJSON);
+            // Kullanıcıyı bekleyen rezervasyonun olduğu sayfaya yönlendir
+            window.location.hash = `#book/${pendingBooking.businessId}`;
+            localStorage.removeItem('pendingBooking'); // Yönlendirme sonrası temizle
+        } else {
+            window.location.hash = '#explore'; // Normal akış
+        }
+    };
     const handleLogout = () => { setCurrentUser(null); setUserMenuAnchorEl(null); window.location.hash = '#'; };
-    const handleCreateAppointment = (business, date, time, orderedServices, total, address, notes) => { /* ... mantık korunuyor ... */ };
+    const handleCreateAppointment = (business, date, time, orderedServices, total, address, notes) => {
+        if (!currentUser || currentUser.type !== 'customer') {
+            showToast('error', 'mustBeLoggedInToBook'); // Bu toast artık Booking.jsx'ten gelecek
+            return;
+        }
+        const newAppointment = { id: `a${Date.now()}`, customerId: currentUser.id, businessId: business.id, customerName: currentUser.name, businessName: business.name, services: orderedServices, totalPrice: total, date, time, status: 'pending', rated: false, address, notes };
+        setAppointments(prev => [...prev, newAppointment]);
+        showToast('success', 'appointmentSuccess');
+        window.location.hash = '#profile';
+    };
     const handleReviewSubmit = async (appointment, rating, comment) => { /* ... mantık korunuyor ... */ };
+    const handleSendMessage = (conversationId, text) => {
+        const newMessage = { from: currentUser.id, text, time: dayjs().format('HH:mm') };
+        setMessages(prev => ({ ...prev, [conversationId]: [...(prev[conversationId] || []), newMessage] }));
+        showToast('success', 'messageSent');
+    };
 
-    const contextValue = useMemo(() => ({ t, lang, setLang, themeMode, setThemeMode, primaryColor, setPrimaryColor, currentUser, businesses, services, appointments, messages, notifications, showToast, handleLogin, handleLogout, handleCreateAppointment, handleReviewSubmit, handleMarkAllRead, setRatingModalAppointment }), [t, lang, themeMode, primaryColor, currentUser, businesses, services, appointments, messages, notifications]);
+    const contextValue = useMemo(() => ({ t, lang, setLang, themeMode, setThemeMode, primaryColor, setPrimaryColor, currentUser, businesses, services, appointments, messages, notifications, showToast, handleLogin, handleLogout, handleCreateAppointment, handleReviewSubmit, handleMarkAllRead, setRatingModalAppointment, isAuthModalOpen, setAuthModalOpen, handleSendMessage }), [t, lang, themeMode, primaryColor, currentUser, businesses, services, appointments, messages, notifications, isAuthModalOpen, handleSendMessage]);
+
+    const renderPageContent = () => {
+        const businessId = currentPage.split('/')[1];
+        const business = businesses.find(b => b.id === businessId);
+
+        if (!currentUser && (currentPage === '#' || currentPage === '')) return <Hero />;
+        if (currentPage.startsWith('#explore')) return <Explore />;
+        if (currentPage.startsWith('#book/')) return business ? <ReservationCalendarPage business={business} /> : <Typography>{t.businessNotFound}</Typography>;
+        if (currentPage.startsWith('#business/')) return business ? <BusinessProfile business={business} /> : <Typography>{t.businessNotFound}</Typography>;
+        if (currentPage.startsWith('#dashboard')) return <BusinessDashboard />;
+        if (currentPage.startsWith('#profile')) return <CustomerProfile />;
+        if (currentPage.startsWith('#messages')) return <Messages />;
+        if (currentPage.startsWith('#notifications')) return <Notifications />;
+        if (currentPage.startsWith('#forum')) return <Forum />;
+        if (currentPage.startsWith('#rewards')) return <Rewards />;
+        if (currentPage.startsWith('#settings')) return <Settings />;
+        if (currentPage === '#auth') return <Auth />;
+        return <Explore />; // Fallback to Explore page
+    };
 
     return (
         <AppContext.Provider value={contextValue}>
@@ -170,8 +217,8 @@ export default function App() {
 
                     <Modal open={isAuthModalOpen} onClose={() => setAuthModalOpen(false)}><Box sx={{ p: 4, bgcolor: 'background.paper' }}><Auth /></Box></Modal>
                     
-                    <Snackbar open={toast.open} autoHideDuration={4000} onClose={() => setToast({ open: false, message: '' })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-                        <Alert onClose={() => setToast({ open: false, message: '' })} severity="success" sx={{ width: '100%' }}>{toast.message}</Alert>
+                    <Snackbar open={toast.open} autoHideDuration={4000} onClose={() => setToast(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                        <Alert onClose={() => setToast(prev => ({ ...prev, open: false }))} severity={toast.severity} sx={{ width: '100%' }}>{toast.message}</Alert>
                     </Snackbar>
                 </Box>
             </ThemeProvider>
