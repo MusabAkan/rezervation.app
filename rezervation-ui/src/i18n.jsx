@@ -1,9 +1,11 @@
+
 export const dict = {
   tr: {
     appName: "ConnectApp+",
     heroTitle: "Yakınındaki güvenilir işletmeleri tek uygulamada bul.",
     heroSub: "Randevu al, mesajlaş, puanları gör. İşletmeler için gelir-gider, personel ve yapay zekâ destekli analizler.",
     getStarted: "Keşfetmeye Başla",
+    explore: "Keşfet",
     home: "Ana Sayfa",
     categories: "Kategoriler",
     filters: "Filtreler",
@@ -215,13 +217,16 @@ export const dict = {
     yourComment: "Yorumunuz",
     submitReview: "Yorumu Gönder",
     cancel: "İptal",
-    loginOrRegister: "Giriş Yap veya Kaydol"
+    loginOrRegister: "Giriş Yap veya Kaydol",
+    noResultsFound: "Aramanızla eşleşen sonuç bulunamadı.",
+    tryDifferentFilters: "Farklı filtreler deneyin veya arama teriminizi değiştirin."
   },
   en: {
     appName: "ConnectApp+",
     heroTitle: "Find trusted local businesses in one app.",
     heroSub: "Book appointments, message, see ratings. For businesses: income/expense tracking, personnel, and AI-powered analytics.",
     getStarted: "Start Exploring",
+    explore: "Explore",
     home: "Home",
     categories: "Categories",
     filters: "Filters",
@@ -433,13 +438,16 @@ export const dict = {
     yourComment: "Your Comment",
     submitReview: "Submit Review",
     cancel: "Cancel",
-    loginOrRegister: "Login or Register"
+    loginOrRegister: "Login or Register",
+    noResultsFound: "No results found matching your search.",
+    tryDifferentFilters: "Try different filters or change your search term."
   },
   es: {
     appName: "ConnectApp+",
     heroTitle: "Encuentra negocios locales de confianza en una sola aplicación.",
     heroSub: "Reserva citas, envía mensajes, consulta valoraciones. Para empresas: seguimiento de ingresos/gastos, personal y análisis con IA.",
     getStarted: "Empieza a Explorar",
+    explore: "Explorar",
     home: "Inicio",
     categories: "Categorías",
     filters: "Filtros",
@@ -651,6 +659,8 @@ export const dict = {
     yourComment: "Tu comentario",
     submitReview: "Enviar reseña",
     cancel: "Cancelar",
-    loginOrRegister: "Iniciar sesión o registrarse"
+    loginOrRegister: "Iniciar sesión o registrarse",
+    noResultsFound: "No se encontraron resultados que coincidan con su búsqueda.",
+    tryDifferentFilters: "Intente con diferentes filtros o cambie su término de búsqueda."
   }
 };

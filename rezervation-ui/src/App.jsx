@@ -131,7 +131,11 @@ function AppContent() {
         const business = businesses.find(b => b.id === businessId);
 
         if (!currentUser && (currentPage === '#' || currentPage === '')) return <Hero />;
-        if (currentPage.startsWith('#explore')) return <Explore />;
+        
+        // *** İŞTE KESİN ÇÖZÜM BURADA ***
+        // Explore bileşenine her seferinde benzersiz bir key vererek yeniden oluşturulmasını sağlıyoruz.
+        if (currentPage.startsWith('#explore')) return <Explore key={Date.now()} />;
+        
         if (currentPage.startsWith('#book/')) return business ? <ReservationCalendarPage business={business} /> : <Typography>{t.businessNotFound}</Typography>;
         if (currentPage.startsWith('#business/')) return business ? <BusinessProfile business={business} /> : <Typography>{t.businessNotFound}</Typography>;
         if (currentPage.startsWith('#dashboard')) return <BusinessDashboard />;
@@ -142,7 +146,9 @@ function AppContent() {
         if (currentPage.startsWith('#rewards')) return <Rewards />;
         if (currentPage.startsWith('#settings')) return <Settings />;
         if (currentPage === '#auth') return <Auth />;
-        return <Explore />;
+        
+        // Fallback olarak da Explore'u key ile render ediyoruz.
+        return <Explore key={Date.now()} />;
     };
 
     return (
