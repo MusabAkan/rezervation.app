@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { Box, Card, CardContent, CardMedia, Typography, Tabs, Tab, List, ListItem, ListItemText, Avatar, Button, Rating, Chip } from '@mui/material';
+
+import React, { useState, useEffect } from 'react';
+import { Box, Card, CardContent, CardMedia, Typography, Tabs, Tab, List, ListItem, ListItemText, Avatar, Button, Rating, CircularProgress } from '@mui/material';
 import { LocationOn, CalendarToday, Message } from '@mui/icons-material';
 import { useAppContext } from '../App';
-import { MOCK_SERVICES, INITIAL_FORUM_POSTS } from '../data/mockData';
+import { api } from '../services/api';
 import { formatCurrency } from '../utils/helpers';
 
 function TabPanel(props) {
@@ -15,10 +16,56 @@ function TabPanel(props) {
 }
 
 export default function BusinessProfile() {
-    const { t, business } = useAppContext();
+    const { t } = useAppContext();
     const [tabValue, setTabValue] = useState(0);
+    
+    const [business, setBusiness] = useState(null);
+    const [operations, setOperations] = useState([]);
+    const [posts, setPosts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const services = MOCK_SERVICES[business.id] || [];
+    useEffect(() => {
+        const businessId = window.location.hash.split('/')[1];
+        if (!businessId) {
+            // Hata düzeltildi: Tek tırnak escape edildi
+            setError('İşletme ID\'si bulunamadı.');
+            setIsLoading(false);
+            return;
+        }
+
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                // Tüm işletmeleri çek ve mevcut ID ile eşleşeni bul
+                const businesses = await api.getBusinesses();
+                const currentBusiness = businesses.find(b => b.id === businessId);
+                setBusiness(currentBusiness);
+
+                if (currentBusiness) {
+                    const operationsData = await api.getOperationsByBusinessId(businessId);
+                    setOperations(operationsData);
+                } else {
+                    setError('İşletme bulunamadı.');
+                }
+
+            } catch (e) {
+                setError(e.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (isLoading) {
+        return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
+    }
+
+    if (error || !business) {
+        return <Typography color="error" sx={{ p: 4, textAlign: 'center' }}>{error || 'İşletme yüklenemedi.'}</Typography>;
+    }
 
     return (
         <Card>
@@ -57,12 +104,15 @@ export default function BusinessProfile() {
                 </TabPanel>
                 <TabPanel value={tabValue} index={1}>
                     <List>
-                        {services.map(service => (
-                            <ListItem key={service.id} secondaryAction={<Typography variant="h6">{formatCurrency(service.price)}</Typography>}>
-                                <ListItemText primary={service.name} />
+                        {operations.map(operation => (
+                            <ListItem key={operation.id} secondaryAction={<Typography variant="h6">{formatCurrency(operation.price)}</Typography>}>
+                                <ListItemText primary={operation.name} />
                             </ListItem>
                         ))}
                     </List>
+                </TabPanel>
+                 <TabPanel value={tabValue} index={2}>
+                    {/* Yorumlar/Forum gönderileri buraya gelecek */}
                 </TabPanel>
             </CardContent>
         </Card>

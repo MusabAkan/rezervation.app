@@ -5,8 +5,7 @@ import { Box, AppBar, Toolbar, Typography, Container, Drawer, List, ListItem, Li
 import { Menu as MenuIcon, Explore as ExploreIcon, Dashboard, Person, Mail, Notifications as NotificationsIcon, Settings as SettingsIcon, Logout, Login, Brightness4, Brightness7, Star, CalendarToday, CheckCircle } from '@mui/icons-material';
 
 import { NotificationProvider, useNotification } from './context/NotificationProvider';
-import { INITIAL_APPOINTMENTS, INITIAL_NOTIFICATIONS, INITIAL_MESSAGES, MOCK_SERVICES } from './data/mockData';
-import { ServerEndpoints } from './services/api';
+import { api } from './services/api';
 import Hero from './pages/Hero.jsx';
 import Explore from './pages/Explore';
 import Auth from './pages/Auth.jsx';
@@ -41,17 +40,12 @@ function AppContent() {
     const [primaryColor, setPrimaryColor] = useState(() => localStorage.getItem('primaryColor') || '#1976d2');
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
-    const [appointments, setAppointments] = useState(INITIAL_APPOINTMENTS);
-    const [messages, setMessages] = useState(INITIAL_MESSAGES);
-    const [businesses, setBusinesses] = useState([]);
-    const [services, setServices] = useState(MOCK_SERVICES);
     const [currentPage, setCurrentPage] = useState(() => window.location.hash || '#');
-    const [ratingModalAppointment, setRatingModalAppointment] = useState(null);
     const [isAuthModalOpen, setAuthModalOpen] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
     const [notificationMenuAnchorEl, setNotificationMenuAnchorEl] = useState(null);
+    const [notifications, setNotifications] = useState([]);
 
     const muiTheme = useMemo(() => createTheme({
         palette: {
@@ -65,18 +59,11 @@ function AppContent() {
     useEffect(() => { localStorage.setItem('lang', lang); }, [lang]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            const businessesData = await ServerEndpoints.getBusinesses();
-            setBusinesses(businessesData);
-            setTimeout(() => setIsLoading(false), 500);
-        };
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        if (currentUser) setNotifications(INITIAL_NOTIFICATIONS[currentUser.id] || []);
-        else setNotifications([]);
+        if (currentUser) {
+            // Fetch notifications logic here
+        } else {
+            setNotifications([]);
+        }
     }, [currentUser]);
 
     useEffect(() => {
@@ -105,39 +92,18 @@ function AppContent() {
     };
     const handleLogout = () => { setCurrentUser(null); setUserMenuAnchorEl(null); window.location.hash = '#'; };
     
-    const handleCreateAppointment = (business, date, time, orderedServices, total, address, notes) => {
-        if (!currentUser || currentUser.type !== 'customer') {
-            showNotification(t.mustBeLoggedInToBook, 'error');
-            return;
-        }
-        const newAppointment = { id: `a${Date.now()}`, customerId: currentUser.id, businessId: business.id, customerName: currentUser.name, businessName: business.name, services: orderedServices, totalPrice: total, date, time, status: 'pending', rated: false, address, notes };
-        setAppointments(prev => [...prev, newAppointment]);
-        showNotification(t.appointmentSuccess, 'success');
-        window.location.hash = '#profile';
-    };
-    
-    const handleReviewSubmit = async (appointment, rating, comment) => { /* ... mantık korunuyor ... */ };
-    
-    const handleSendMessage = (conversationId, text) => {
-        const newMessage = { from: currentUser.id, text, time: new Date().toISOString() };
-        setMessages(prev => ({ ...prev, [conversationId]: [...(prev[conversationId] || []), newMessage] }));
-        showNotification(t.messageSent, 'success');
-    };
-
-    const contextValue = useMemo(() => ({ t, lang, setLang, themeMode, setThemeMode, primaryColor, setPrimaryColor, currentUser, businesses, services, appointments, messages, notifications, handleLogin, handleLogout, handleCreateAppointment, handleReviewSubmit, handleMarkAllRead, setRatingModalAppointment, isAuthModalOpen, setAuthModalOpen, handleSendMessage }), [t, lang, themeMode, primaryColor, currentUser, businesses, services, appointments, messages, notifications, isAuthModalOpen, handleSendMessage]);
+    const contextValue = useMemo(() => ({ 
+        t, lang, setLang, themeMode, setThemeMode, primaryColor, setPrimaryColor, 
+        currentUser, setCurrentUser, handleLogin, handleLogout, 
+        isAuthModalOpen, setAuthModalOpen, 
+        notifications, setNotifications, handleMarkAllRead
+    }), [t, lang, themeMode, primaryColor, currentUser, isAuthModalOpen, notifications]);
 
     const renderPageContent = () => {
-        const businessId = currentPage.split('/')[1];
-        const business = businesses.find(b => b.id === businessId);
-
         if (!currentUser && (currentPage === '#' || currentPage === '')) return <Hero />;
-        
-        // *** İŞTE KESİN ÇÖZÜM BURADA ***
-        // Explore bileşenine her seferinde benzersiz bir key vererek yeniden oluşturulmasını sağlıyoruz.
         if (currentPage.startsWith('#explore')) return <Explore key={Date.now()} />;
-        
-        if (currentPage.startsWith('#book/')) return business ? <ReservationCalendarPage business={business} /> : <Typography>{t.businessNotFound}</Typography>;
-        if (currentPage.startsWith('#business/')) return business ? <BusinessProfile business={business} /> : <Typography>{t.businessNotFound}</Typography>;
+        if (currentPage.startsWith('#book/')) return <ReservationCalendarPage />;
+        if (currentPage.startsWith('#business/')) return <BusinessProfile />;
         if (currentPage.startsWith('#dashboard')) return <BusinessDashboard />;
         if (currentPage.startsWith('#profile')) return <CustomerProfile />;
         if (currentPage.startsWith('#messages')) return <Messages />;
@@ -147,7 +113,6 @@ function AppContent() {
         if (currentPage.startsWith('#settings')) return <Settings />;
         if (currentPage === '#auth') return <Auth />;
         
-        // Fallback olarak da Explore'u key ile render ediyoruz.
         return <Explore key={Date.now()} />;
     };
 
@@ -176,7 +141,10 @@ function AppContent() {
 
                                 <Tooltip title={t.accountSettings}>
                                     <IconButton onClick={(e) => setUserMenuAnchorEl(e.currentTarget)} size="small" sx={{ ml: 2 }}>
-                                        <Avatar sx={{ width: 32, height: 32 }} src={currentUser.photo}>{currentUser.name[0]}</Avatar>
+                                        {/* Hata düzeltildi: currentUser ve currentUser.name kontrolü eklendi */}
+                                        <Avatar sx={{ width: 32, height: 32 }} src={currentUser.photo}>
+                                            {currentUser && currentUser.name ? currentUser.name[0] : ''}
+                                        </Avatar>
                                     </IconButton>
                                 </Tooltip>
                                 <Menu anchorEl={userMenuAnchorEl} open={Boolean(userMenuAnchorEl)} onClose={() => setUserMenuAnchorEl(null)}>

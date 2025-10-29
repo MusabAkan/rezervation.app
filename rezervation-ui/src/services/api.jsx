@@ -1,34 +1,95 @@
-import {INITIAL_BUSINESSES_DATA, MOCK_AVAILABILITY} from '../data/mockData';
+const API_BASE_URL = 'http://localhost:8080/api';
 
-
-export const ServerEndpoints = {
-    getBusinesses: async () => {
-        console.log("SIMULATING: Fetching businesses from backend...");
-        return new Promise(resolve => setTimeout(() => resolve(INITIAL_BUSINESSES_DATA), 500));
-    },
-    submitReview: async (businessId, rating, comment) => {
-        console.log(`SIMULATING: Submitting review for ${businessId} with rating ${rating}`);
-        return new Promise(resolve => setTimeout(() => resolve({
-            success: true,
-            newRating: 4.8,
-            newReviewCount: 129
-        }), 500));
-    },
-    getCalendarAvailability: async (businessId, year, month) => {
-        console.log(`SIMULATING: Fetching calendar availability for ${businessId} for ${year}-${month + 1}`);
-        const businessAvailability = MOCK_AVAILABILITY[businessId] || {};
-        const monthAvailability = {};
-        for (const dateStr in businessAvailability) {
-            const date = new Date(dateStr);
-            if (date.getFullYear() === year && date.getMonth() === month) {
-                monthAvailability[date.getDate()] = businessAvailability[dateStr];
-            }
+const request = async (endpoint, options = {}) => {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+        },
+        ...options,
+    };
+    try {
+        const response = await fetch(url, config);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
-        return new Promise(resolve => setTimeout(() => resolve(monthAvailability), 300));
+        return response.status === 204 ? null : response.json();
+    } catch (error) {
+        console.error(`API request error to ${endpoint}:`, error);
+        throw error;
+    }
+};
+
+export const api = {
+    // --- Auth API'ları ---
+    login: (credentials) => {
+        return request('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        });
+    },
+    register: (userData) => {
+        return request('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(userData),
+        });
+    },
+
+    // --- Business API'ları ---
+    getBusinesses: () => {
+        return request('/businesses');
+    },
+
+    // --- Operation API'ları ---
+    getOperationsByBusinessId: (businessId) => {
+        return request(`/operations/business/${businessId}`);
+    },
+
+    // --- Booking/Calendar API'ları (Geçici Mock'lar) ---
+    getCalendarAvailability: async (businessId, year, month) => {
+        console.warn(`getCalendarAvailability API call for business ${businessId} is mocked.`);
+        // Gerçekte: return request(`/calendar/availability?businessId=${businessId}&year=${year}&month=${month}`);
+        return Promise.resolve({ '1': 'full', '15': 'partial', '25': 'full' });
     },
     getAvailableTimes: async (businessId, date) => {
-        console.log(`SIMULATING: Fetching available times for ${businessId} on ${date}`);
-        const business = INITIAL_BUSINESSES_DATA.find(b => b.id === businessId);
-        return new Promise(resolve => setTimeout(() => resolve(business?.slots || []), 300));
-    }
+        console.warn(`getAvailableTimes API call for business ${businessId} on ${date} is mocked.`);
+        // Gerçekte: return request(`/calendar/times?businessId=${businessId}&date=${date}`);
+        return Promise.resolve(['09:00', '10:00', '11:30', '14:00', '15:30']);
+    },
+
+    // --- Mesajlaşma API'ları (Geçici Mock'lar) ---
+    getUsers: async () => {
+        console.warn('getUsers API call is mocked.');
+        return Promise.resolve([]);
+    },
+    getConversations: async (userId) => {
+        console.warn(`getConversations API call for user ${userId} is mocked.`);
+        return Promise.resolve({});
+    },
+    sendMessage: async (conversationId, senderId, text) => {
+        console.warn(`sendMessage API call to conversation ${conversationId} is mocked.`);
+        return Promise.resolve({ id: `msg_${Date.now()}`, conversationId, senderId, text, timestamp: new Date().toISOString() });
+    },
+
+    // --- Randevu API'ları (Geçici Mock'lar) ---
+    getAppointmentsByCustomerId: async (customerId) => {
+        console.warn(`getAppointmentsByCustomerId API call for customer ${customerId} is mocked.`);
+        return Promise.resolve([]);
+    },
+
+    // --- Forum API'ları (Geçici Mock'lar) ---
+    getForumPosts: async () => {
+        console.warn('getForumPosts API call is mocked.');
+        return Promise.resolve([]);
+    },
+    getForumPostsByBusinessId: async (businessId) => {
+        console.warn(`getForumPostsByBusinessId API call for business ${businessId} is mocked.`);
+        return Promise.resolve([]);
+    },
+    createForumPost: async (postData) => {
+        console.warn('createForumPost API call is mocked.');
+        return Promise.resolve({ id: `post_${Date.now()}`, ...postData, timestamp: new Date().toISOString(), likes: 0, comments: [] });
+    },
 };

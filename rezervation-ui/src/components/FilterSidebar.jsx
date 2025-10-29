@@ -13,11 +13,10 @@ import {
     Divider,
     Toolbar,
     InputBase,
-    IconButton // Kapatma butonu için
+    IconButton
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Search as SearchIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material'; // Ikonlar eklendi
-import { filterStructure } from '../data/mockFilters';
+import { Search as SearchIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material';
 
 const drawerWidth = 280;
 
@@ -52,8 +51,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-// onClose prop'u eklendi
-export default function FilterSidebar({ open, onClose, filters, onFilterChange, searchQuery, onSearchChange }) {
+export default function FilterSidebar({ open, onClose, filters, onFilterChange, searchQuery, onSearchChange, filterStructure }) {
 
     const handleCheckboxChange = (filterKey, option) => {
         const currentSelection = filters[filterKey] || [];
@@ -127,7 +125,6 @@ export default function FilterSidebar({ open, onClose, filters, onFilterChange, 
 
     const drawerContent = (
         <div>
-            {/* Başlık ve kapatma butonu için Toolbar */}
             <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
                  <Typography variant="h6" fontWeight="bold">Filtreler</Typography>
                  <IconButton onClick={onClose}>
@@ -146,7 +143,7 @@ export default function FilterSidebar({ open, onClose, filters, onFilterChange, 
             </Search>
             <Divider sx={{ my: 1 }} />
             <List>
-                {filterStructure.map(filter => (
+                {filterStructure && filterStructure.map(filter => (
                     <React.Fragment key={filter.key}>
                         <ListItem>
                             <ListItemText primary={<Typography variant="subtitle1" fontWeight="bold">{filter.displayName}</Typography>} />
@@ -171,9 +168,7 @@ export default function FilterSidebar({ open, onClose, filters, onFilterChange, 
             }}
             anchor="left"
             open={open}
-            // Variant 'temporary' olarak değiştirildi.
             variant="temporary"
-            // Dışarıya tıklayınca kapanmayı sağlar.
             onClose={onClose} 
         >
             {drawerContent}
