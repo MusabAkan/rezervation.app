@@ -29,12 +29,14 @@ import {useAppContext} from '../App';
 import {formatCurrency} from '../utils/helpers';
 import {ServerEndpoints} from '../services/api';
 import MapModal from '../components/modals/MapModal';
+import {useNotification} from "../context/NotificationProvider";
 
 export default function ReservationCalendarPage({business}) {
     const {t, services: servicesData, handleCreateAppointment, currentUser, setAuthModalOpen} = useAppContext();
-
+    // showNotification fonksiyonu hook'tan alınıyor
+    const {showNotification} = useNotification();
     const [activeStep, setActiveStep] = useState(0);
-    const [selectedDate, setSelectedDate] = useState(null); // Başlangıçta null olarak ayarlandı
+    const [selectedDate, setSelectedDate] = useState(null);
     const [availableTimes, setAvailableTimes] = useState([]);
     const [selectedTime, setSelectedTime] = useState('');
     const [order, setOrder] = useState({});
@@ -66,8 +68,8 @@ export default function ReservationCalendarPage({business}) {
                     setOrder(pendingBooking.order);
                     setAddress(pendingBooking.address);
                     setNotes(pendingBooking.notes);
-                    setActiveStep(1); // Hizmet seçimi adımına geç
-                    localStorage.removeItem('pendingBooking'); // Bilgiyi kullandıktan sonra temizle
+                    setActiveStep(1);
+                    localStorage.removeItem('pendingBooking');
                 }
             }
         }
@@ -76,12 +78,11 @@ export default function ReservationCalendarPage({business}) {
     useEffect(() => {
         const fetchAvailability = async () => {
             if (!business || !selectedDate) return;
-            // Ay ve yıl değiştiğinde tetiklenmesi için format kullanıldı
             const monthAvailability = await ServerEndpoints.getCalendarAvailability(business.id, selectedDate.year(), selectedDate.month());
             setAvailability(monthAvailability);
         };
         fetchAvailability();
-    }, [selectedDate?.month(), selectedDate?.year(), business]); // selectedDate null olabilir, bu yüzden optional chaining kullanıldı
+    }, [selectedDate?.month(), selectedDate?.year(), business]);
 
     useEffect(() => {
         const fetchTimes = async () => {
@@ -91,7 +92,7 @@ export default function ReservationCalendarPage({business}) {
             setSelectedTime('');
         };
         fetchTimes();
-    }, [selectedDate?.format('YYYY-MM-DD'), business]); // selectedDate null olabilir, bu yüzden optional chaining kullanıldı
+    }, [selectedDate?.format('YYYY-MM-DD'), business]);
 
     const handleOrderChange = (serviceId, amount) => {
         setOrder(prev => ({...prev, [serviceId]: Math.max(0, (prev[serviceId] || 0) + amount)}));
@@ -110,6 +111,15 @@ export default function ReservationCalendarPage({business}) {
                 };
                 localStorage.setItem('pendingBooking', JSON.stringify(pendingBookingState));
                 setAuthModalOpen(true);
+
+                showNotification(t.mustBeLoggedInToBook, {
+                    severity: 'info',
+                    duration: 1000,
+                    position:{
+                        vertical: 'top',
+                        horizontal: 'center'
+                    }
+                });
 
                 return;
             }

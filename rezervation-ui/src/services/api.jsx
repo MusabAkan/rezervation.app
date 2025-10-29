@@ -1,6 +1,6 @@
 import {INITIAL_BUSINESSES_DATA, MOCK_AVAILABILITY} from '../data/mockData';
 
-// --- Hilla Endpoint Simülasyonu ---
+
 export const ServerEndpoints = {
     getBusinesses: async () => {
         console.log("SIMULATING: Fetching businesses from backend...");
