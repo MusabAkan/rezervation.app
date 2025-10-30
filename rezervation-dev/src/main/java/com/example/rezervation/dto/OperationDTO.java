@@ -1,24 +1,22 @@
-package com.example.rezervation.domain;
+package com.example.rezervation.dto;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
+// Data Transfer Object for Operation
+// Bu sınıf, Operation entity'sinin frontend'e gönderilecek olan sadeleştirilmiş bir versiyonudur.
+public class OperationDTO {
 
-@Entity
-public class Operation {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String name;
     private String description;
     private double price;
     private int durationInMinutes;
 
-    // FetchType.EAGER olarak değiştirildi. Bu, Business nesnesinin her zaman birlikte yüklenmesini sağlar.
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "business_id")
-    @JsonBackReference
-    private Business business;
+    public OperationDTO(String id, String name, String description, double price, int durationInMinutes) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.durationInMinutes = durationInMinutes;
+    }
 
     // Getters and Setters
 
@@ -60,13 +58,5 @@ public class Operation {
 
     public void setDurationInMinutes(int durationInMinutes) {
         this.durationInMinutes = durationInMinutes;
-    }
-
-    public Business getBusiness() {
-        return business;
-    }
-
-    public void setBusiness(Business business) {
-        this.business = business;
     }
 }

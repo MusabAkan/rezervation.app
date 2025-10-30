@@ -1,5 +1,6 @@
 package com.example.rezervation.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -30,7 +31,8 @@ public class Business {
     private User owner;
 
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Operation> operations = new ArrayList<>(); // İşletmenin sunduğu operasyonlar
+    @JsonManagedReference // Sonsuz döngüyü önlemek için
+    private List<Operation> operations = new ArrayList<>();
 
     // Getters and Setters
 

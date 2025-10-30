@@ -28,7 +28,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/tr';
 import { useAppContext } from '../App';
 import { formatCurrency } from '../utils/helpers';
-import { api } from '../services/api'; // ServerEndpoints yerine api import edildi
+import { api } from '../services/api';
 import MapModal from '../components/modals/MapModal';
 import { useNotification } from "../context/NotificationProvider";
 
@@ -68,7 +68,7 @@ export default function ReservationCalendarPage() {
 
     const isRemoteServiceSelected = useMemo(() => Object.keys(order).some(id => {
         const operation = operations.find(op => op.id === id);
-        return operation && order[id] > 0 && operation.isRemote; // isRemote alanı Operation entity'sinde olmalı
+        return operation && order[id] > 0 && operation.isRemote;
     }), [order, operations]);
 
     useEffect(() => {
@@ -97,11 +97,9 @@ export default function ReservationCalendarPage() {
     const handleNext = () => {
         if (activeStep === steps.length - 1) {
             if (!currentUser) {
-                // ... Giriş yapmamış kullanıcı mantığı ...
                 showNotification(t.mustBeLoggedInToBook, 'error');
                 return;
             }
-            // handleCreateAppointment App.jsx'ten kaldırıldığı için bu mantık da güncellenmeli
             console.log("Randevu oluşturulacak:", { business, selectedDate, selectedTime, order });
             showNotification(t.appointmentSuccess, 'success');
             window.location.hash = '#profile';
@@ -122,7 +120,11 @@ export default function ReservationCalendarPage() {
             </Typography>
 
             <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-                {steps.map((label, index) => <Step key={label}><StepLabel>{`${index + 1}. ${label}`}</StepLabel></Step>)}
+                {steps.map((label) => (
+                    <Step key={label}>
+                        <StepLabel>{label}</StepLabel>
+                    </Step>
+                ))}
             </Stepper>
 
             {activeStep === 0 && (

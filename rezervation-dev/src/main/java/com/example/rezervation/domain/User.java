@@ -1,13 +1,9 @@
 package com.example.rezervation.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "users") // 'user' genellikle SQL'de rezerve bir kelime olduğu için 'users' kullanmak daha güvenlidir.
+@Table(name = "users")
 public class User {
 
     @Id
@@ -15,10 +11,18 @@ public class User {
     private String id;
     private String fullName;
     private String email;
-    private String password; // Gerçek bir uygulamada bu alan her zaman şifrelenmelidir.
-    private String userType; // 'customer' veya 'business'
+    private String password;
+    private String userType;
+
+    // Yeni güvenlik ve ayar alanları
+    private boolean isSuspended = false;
+    private boolean isTwoFactorEnabled = false;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private NotificationPreferences notificationPreferences;
 
     // Getters and Setters
+
     public String getId() {
         return id;
     }
@@ -57,5 +61,29 @@ public class User {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    public boolean isSuspended() {
+        return isSuspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        isSuspended = suspended;
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return isTwoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        isTwoFactorEnabled = twoFactorEnabled;
+    }
+
+    public NotificationPreferences getNotificationPreferences() {
+        return notificationPreferences;
+    }
+
+    public void setNotificationPreferences(NotificationPreferences notificationPreferences) {
+        this.notificationPreferences = notificationPreferences;
     }
 }

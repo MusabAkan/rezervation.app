@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8080'; // /api kaldırıldı
 
 const request = async (endpoint, options = {}) => {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -25,13 +25,13 @@ const request = async (endpoint, options = {}) => {
 export const api = {
     // --- Auth API'ları ---
     login: (credentials) => {
-        return request('/auth/login', {
+        return request('/api/auth/login', { // /api eklendi
             method: 'POST',
             body: JSON.stringify(credentials),
         });
     },
     register: (userData) => {
-        return request('/auth/register', {
+        return request('/api/auth/register', { // /api eklendi
             method: 'POST',
             body: JSON.stringify(userData),
         });
@@ -39,23 +39,21 @@ export const api = {
 
     // --- Business API'ları ---
     getBusinesses: () => {
-        return request('/businesses');
+        return request('/api/businesses'); // /api eklendi
     },
 
     // --- Operation API'ları ---
     getOperationsByBusinessId: (businessId) => {
-        return request(`/operations/business/${businessId}`);
+        return request(`/api/operations/business/${businessId}`); // /api eklendi
     },
 
     // --- Booking/Calendar API'ları (Geçici Mock'lar) ---
     getCalendarAvailability: async (businessId, year, month) => {
         console.warn(`getCalendarAvailability API call for business ${businessId} is mocked.`);
-        // Gerçekte: return request(`/calendar/availability?businessId=${businessId}&year=${year}&month=${month}`);
         return Promise.resolve({ '1': 'full', '15': 'partial', '25': 'full' });
     },
     getAvailableTimes: async (businessId, date) => {
         console.warn(`getAvailableTimes API call for business ${businessId} on ${date} is mocked.`);
-        // Gerçekte: return request(`/calendar/times?businessId=${businessId}&date=${date}`);
         return Promise.resolve(['09:00', '10:00', '11:30', '14:00', '15:30']);
     },
 

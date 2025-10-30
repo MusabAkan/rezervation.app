@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Frontend'den gelen isteklere izin ver
+// @CrossOrigin kaldırıldı, artık WebConfig'den yönetiliyor
 public class UserController {
 
     private final UserService userService;
@@ -36,9 +36,7 @@ public class UserController {
 
         return userService.findByEmail(email)
                 .map(user -> {
-                    // Gerçek bir uygulamada burada şifre karşılaştırması yapılmalıdır.
-                    // passwordEncoder.matches(password, user.getPassword())
-                    if (user.getPassword().equals(password)) { // Şimdilik basit string karşılaştırma
+                    if (user.getPassword().equals(password)) {
                         return new ResponseEntity<>(user, HttpStatus.OK);
                     } else {
                         return new ResponseEntity<>(Map.of("message", "Yanlış şifre."), HttpStatus.UNAUTHORIZED);

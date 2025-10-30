@@ -1,6 +1,7 @@
 package com.example.rezervation.service;
 
 import com.example.rezervation.domain.Operation;
+import com.example.rezervation.dto.OperationDTO;
 import com.example.rezervation.repository.OperationRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,8 @@ public class OperationService {
         operationRepository.deleteById(id);
     }
 
-    public List<Operation> getOperationsByBusinessId(String businessId) {
-        return operationRepository.findByBusinessId(businessId);
+    // Metot artık doğrudan repository'den gelen DTO listesini döndürüyor.
+    public List<OperationDTO> getOperationsByBusinessId(String businessId) {
+        return operationRepository.findOperationsByBusinessId(businessId);
     }
 }

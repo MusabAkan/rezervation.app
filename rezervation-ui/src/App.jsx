@@ -1,10 +1,10 @@
 
 import React, { useMemo, useState, useEffect, createContext, useContext } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Box, AppBar, Toolbar, Typography, Container, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, IconButton, Select, MenuItem, Avatar, Badge, Tooltip, Menu, Button, CircularProgress, Modal, CssBaseline, Divider } from '@mui/material';
-import { Menu as MenuIcon, Explore as ExploreIcon, Dashboard, Person, Mail, Notifications as NotificationsIcon, Settings as SettingsIcon, Logout, Login, Brightness4, Brightness7, Star, CalendarToday, CheckCircle } from '@mui/icons-material';
+import { Box, AppBar, Toolbar, Typography, Container, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, IconButton, Select, MenuItem, Avatar, Badge, Tooltip, Menu, Button, CircularProgress, Modal, CssBaseline, Divider, Link } from '@mui/material'; // Link eklendi
+import { Menu as MenuIcon, Explore as ExploreIcon, Dashboard, Person, Mail, Notifications as NotificationsIcon, Settings as SettingsIcon, Logout, Login, Brightness4, Brightness7, Star, CalendarToday, CheckCircle, Forum as ForumIcon, Loyalty as LoyaltyIcon } from '@mui/icons-material';
 
-import { NotificationProvider, useNotification } from './context/NotificationProvider';
+import { NotificationProvider } from './context/NotificationProvider';
 import { api } from './services/api';
 import Hero from './pages/Hero.jsx';
 import Explore from './pages/Explore';
@@ -33,7 +33,6 @@ const getIconForType = (type) => {
 };
 
 function AppContent() {
-    const { showNotification } = useNotification();
     const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'tr');
     const t = useMemo(() => dict[lang] || dict.tr, [lang]);
     const [themeMode, setThemeMode] = useState(() => localStorage.getItem('themeMode') || 'light');
@@ -59,14 +58,6 @@ function AppContent() {
     useEffect(() => { localStorage.setItem('lang', lang); }, [lang]);
 
     useEffect(() => {
-        if (currentUser) {
-            // Fetch notifications logic here
-        } else {
-            setNotifications([]);
-        }
-    }, [currentUser]);
-
-    useEffect(() => {
         const handleHashChange = () => {
             setCurrentPage(window.location.hash || '#');
             setSidebarOpen(false);
@@ -81,14 +72,7 @@ function AppContent() {
     const handleLogin = (user) => { 
         setCurrentUser(user); 
         setAuthModalOpen(false); 
-        const pendingBookingJSON = localStorage.getItem('pendingBooking');
-        if (pendingBookingJSON) {
-            const pendingBooking = JSON.parse(pendingBookingJSON);
-            window.location.hash = `#book/${pendingBooking.businessId}`;
-            localStorage.removeItem('pendingBooking');
-        } else {
-            window.location.hash = '#explore';
-        }
+        window.location.hash = '#explore';
     };
     const handleLogout = () => { setCurrentUser(null); setUserMenuAnchorEl(null); window.location.hash = '#'; };
     
@@ -112,7 +96,6 @@ function AppContent() {
         if (currentPage.startsWith('#rewards')) return <Rewards />;
         if (currentPage.startsWith('#settings')) return <Settings />;
         if (currentPage === '#auth') return <Auth />;
-        
         return <Explore key={Date.now()} />;
     };
 
@@ -123,8 +106,13 @@ function AppContent() {
                     <CssBaseline />
                     <AppBar position="fixed"><Toolbar>
                         <IconButton color="inherit" edge="start" onClick={() => setSidebarOpen(true)} sx={{ mr: 2 }}><MenuIcon /></IconButton>
-                        <Star sx={{ mr: 1 }} />
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>{t.appName}</Typography>
+                        
+                        {/* Logo ve Başlık artık tıklanabilir bir link */}
+                        <Link href="#" sx={{ display: 'flex', alignItems: 'center', color: 'inherit', textDecoration: 'none', flexGrow: 1 }}>
+                            <Star sx={{ mr: 1 }} />
+                            <Typography variant="h6" component="div">{t.appName}</Typography>
+                        </Link>
+
                         <Select value={lang} onChange={(e) => setLang(e.target.value)} size="small" sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' }, '& .MuiSvgIcon-root': { color: 'white' } }}>
                             <MenuItem value="tr">🇹🇷 TR</MenuItem>
                             <MenuItem value="en">🇬🇧 EN</MenuItem>
@@ -141,7 +129,6 @@ function AppContent() {
 
                                 <Tooltip title={t.accountSettings}>
                                     <IconButton onClick={(e) => setUserMenuAnchorEl(e.currentTarget)} size="small" sx={{ ml: 2 }}>
-                                        {/* Hata düzeltildi: currentUser ve currentUser.name kontrolü eklendi */}
                                         <Avatar sx={{ width: 32, height: 32 }} src={currentUser.photo}>
                                             {currentUser && currentUser.name ? currentUser.name[0] : ''}
                                         </Avatar>
@@ -162,7 +149,16 @@ function AppContent() {
                         <Box sx={{ width: 250 }} role="presentation" onClick={() => setSidebarOpen(false)} onKeyDown={() => setSidebarOpen(false)}>
                             <List>
                                 <ListItemButton component="a" href="#explore"><ListItemIcon><ExploreIcon /></ListItemIcon><ListItemText primary={t.explore} /></ListItemButton>
-                                {currentUser && <ListItemButton component="a" href="#profile"><ListItemIcon><Person /></ListItemIcon><ListItemText primary={t.profile} /></ListItemButton>}
+                                {currentUser && (
+                                    <>
+                                        <ListItemButton component="a" href="#profile"><ListItemIcon><Person /></ListItemIcon><ListItemText primary={t.myProfile} /></ListItemButton>
+                                        <ListItemButton component="a" href="#messages"><ListItemIcon><Mail /></ListItemIcon><ListItemText primary={t.messages} /></ListItemButton>
+                                        <ListItemButton component="a" href="#notifications"><ListItemIcon><NotificationsIcon /></ListItemIcon><ListItemText primary={t.notifications} /></ListItemButton>
+                                        <ListItemButton component="a" href="#forum"><ListItemIcon><ForumIcon /></ListItemIcon><ListItemText primary={t.forum} /></ListItemButton>
+                                        <ListItemButton component="a" href="#rewards"><ListItemIcon><LoyaltyIcon /></ListItemIcon><ListItemText primary={t.rewards} /></ListItemButton>
+                                        <ListItemButton component="a" href="#settings"><ListItemIcon><SettingsIcon /></ListItemIcon><ListItemText primary={t.settings} /></ListItemButton>
+                                    </>
+                                )}
                                 {currentUser?.type === 'business' && <ListItemButton component="a" href="#dashboard"><ListItemIcon><Dashboard /></ListItemIcon><ListItemText primary={t.dashboard} /></ListItemButton>}
                             </List>
                         </Box>
